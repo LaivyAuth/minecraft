@@ -4,6 +4,7 @@ import codes.laivy.auth.LaivyAuth;
 import codes.laivy.auth.api.LaivyAuthApi;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,9 +23,10 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
     // Object
 
     private final @NotNull ReentrantLock lock = new ReentrantLock();
+    private volatile boolean flushed = false;
 
     private final @NotNull Set<Mapping> mappings = new HashSet<>();
-    private @Nullable Mapping mapping;
+    private @UnknownNullability Mapping mapping;
 
     private final @NotNull LaivyAuth plugin;
 
@@ -73,6 +75,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
             break;
         } catch (@NotNull Throwable e) {
+            this.mapping = null; // Remove mapping reference, it's not compatible.
             throw new RuntimeException(e);
         }
     }
@@ -83,12 +86,30 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         return plugin;
     }
 
+    public @NotNull Mapping getMapping() {
+        if (flushed) {
+            throw new IllegalStateException("the implementation api is closed");
+        } else if (mapping == null) {
+            throw new NullPointerException("there's no compatible LaivyAuth module available");
+        }
+
+        return mapping;
+    }
+
     @Override
     public boolean isRegistered(@NotNull UUID uuid) {
+        if (flushed) {
+            throw new IllegalStateException("the implementation api is closed");
+        }
+
         return false;
     }
     @Override
     public boolean isAuthenticated(@NotNull UUID uuid) {
+        if (flushed) {
+            throw new IllegalStateException("the implementation api is closed");
+        }
+
         return false;
     }
 
@@ -96,7 +117,18 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
     @Override
     public void flush() throws IOException {
+        if (flushed) {
+            throw new IOException("the implementation api already is flushed");
+        }
 
+        flushed = true;
+
+        try {
+            mapping.close();
+        } finally {
+            mappings.clear();
+            mapping = null;
+        }
     }
 
 }
