@@ -4,17 +4,20 @@
 #  | |__| (_| | |\ V /| |_| |/ ___ \ |_| | |_| | | |
 #  |_____\__,_|_| \_/  \__, /_/   \_\__,_|\__|_| |_|
 #                      |___/
-
+#
 # Author: Daniel Meinicke (Laivy)
 # Support: https://laivy.codes/discord?ref=LaivyAuth
 #
 
+# Sets the debug state of the plugin.
+# If true, the plugin will send detailed logs that may
+# be useful for developers to see exactly what's happening at the plugin.
 debug: false
 
 updates:
-  # Sets if the plugin should check for new versions. The plugin will check via the LaivyCodes repository.
-  # This helps ensure that the plugin is up-to-date with the latest features and security patches.
-  check: true
+  # Sets the time in minutes that the plugin should check for new mappings and plugin updates.
+  # Leave it "-1" if you want to disable the update checks
+  check: 60
 
   # Sets if the plugin should be automatically updated if there's a new available version.
   # Automatic updates provide convenience but may introduce changes unexpectedly.
