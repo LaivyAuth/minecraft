@@ -21,10 +21,16 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
     // Object
 
-    private static final @NotNull ReentrantLock lock = new ReentrantLock();
-    private static final @NotNull Set<Mapping> mappings = new HashSet<>();
+    private final @NotNull ReentrantLock lock = new ReentrantLock();
+
+    private final @NotNull Set<Mapping> mappings = new HashSet<>();
+    private @Nullable Mapping mapping;
+
+    private final @NotNull LaivyAuth plugin;
 
     private LaivyAuthApiImpl(@NotNull LaivyAuth plugin) {
+        this.plugin = plugin;
+
         // Load all mappings
         @NotNull File file = new File(plugin.getDataFolder(), "/mappings/");
 
@@ -40,10 +46,10 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
                 if (Mapping.class.isAssignableFrom(main)) {
                     //noinspection unchecked
-                    @NotNull Constructor<Mapping> constructor = ((Class<Mapping>) main).getDeclaredConstructor(ClassLoader.class);
+                    @NotNull Constructor<Mapping> constructor = ((Class<Mapping>) main).getDeclaredConstructor(ClassLoader.class, boolean.class);
                     constructor.setAccessible(true);
 
-                    @NotNull Mapping mapping = constructor.newInstance(classLoader);
+                    @NotNull Mapping mapping = constructor.newInstance(classLoader, getPlugin().getConfig().getBoolean("debug", false));
                     mappings.add(mapping);
                 } else {
                     throw new RuntimeException("The main class of mapping '" + mappingFile.getName() + "' isn't an instance of '" + Mapping.class.getName() + "'");
@@ -59,10 +65,23 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
             throw new RuntimeException("an unknown error occurred trying to load mapping '" + mappingFile.getName() + "'", e);
         }
 
-        System.out.println("Loaded '" + mappings.size() + "' mappings");
+        // Get compatible module and load it
+        for (@NotNull Mapping mapping : mappings) if (mapping.isCompatible()) try {
+            this.mapping = mapping;
+            mapping.start();
+            System.out.println("Loaded '" + mapping.getName() + "'");
+
+            break;
+        } catch (@NotNull Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // Getters
+
+    public @NotNull LaivyAuth getPlugin() {
+        return plugin;
+    }
 
     @Override
     public boolean isRegistered(@NotNull UUID uuid) {
