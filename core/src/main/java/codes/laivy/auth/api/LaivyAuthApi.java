@@ -10,4 +10,6 @@ public interface LaivyAuthApi extends Flushable {
     boolean isRegistered(@NotNull UUID uuid);
     boolean isAuthenticated(@NotNull UUID uuid);
 
+    boolean isDebug();
+
 }
