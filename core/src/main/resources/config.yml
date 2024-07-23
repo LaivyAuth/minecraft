@@ -1,0 +1,39 @@
+#   _          _                _         _   _
+#  | |    __ _(_)_   ___   _   / \  _   _| |_| |__
+#  | |   / _` | \ \ / / | | | / _ \| | | | __| '_ \
+#  | |__| (_| | |\ V /| |_| |/ ___ \ |_| | |_| | | |
+#  |_____\__,_|_| \_/  \__, /_/   \_\__,_|\__|_| |_|
+#                      |___/
+
+# Author: Daniel Meinicke (Laivy)
+# Support: https://laivy.codes/discord?ref=LaivyAuth
+#
+
+updates:
+  # Sets if the plugin should check for new versions. The plugin will check via the LaivyCodes repository.
+  # This helps ensure that the plugin is up-to-date with the latest features and security patches.
+  check: true
+
+  # Sets if the plugin should be automatically updated if there's a new available version.
+  # Automatic updates provide convenience but may introduce changes unexpectedly.
+  # Note: This setting is ignored if 'check' is set to false.
+  auto: true
+
+whitelist:
+  # If false, premium users (those who have purchased the game) will not be able to join the server.
+  # This setting allows server administrators to control access based on the user type.
+  allow-premium-users: true
+
+  # If false, cracked users (those who are using unauthorized copies of the game) will not be able to join the server.
+  # This helps prevent unauthorized access and maintain server integrity.
+  allow-cracked-users: true
+
+premium-automatic-auth:
+  # When enabled, premium users will not need to authenticate using commands.
+  # The plugin differentiates between premium and cracked users as follows:
+  # 1. The client attempts to connect to the server.
+  # 2. The server sends a message prompting the client to reconnect.
+  # 3. The player must reconnect for verification.
+  #    - If the verification process fails, the client is considered a cracked user and must enter a password.
+  #    - If the verification process is successful, the player is considered a premium user and will not need to enter a password for future logins, provided they use a premium account.
+  enabled: true

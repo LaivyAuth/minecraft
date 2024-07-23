@@ -1,0 +1,9 @@
+name: "LaivyAuth"
+description: "Authentication system for cracked and premium players"
+version: ${project.version}
+main: codes.laivy.auth.DogoAuth
+author: "Laivy (@itslaivy)"
+api-version: 1.13
+
+softdepend:
+  - Metadotis
