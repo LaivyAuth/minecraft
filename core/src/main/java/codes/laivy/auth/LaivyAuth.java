@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 
 public final class LaivyAuth extends JavaPlugin {
 
@@ -14,13 +15,17 @@ public final class LaivyAuth extends JavaPlugin {
      * <p>
      * You can change the value of this reference using reflections!
      */
+    @SuppressWarnings("FieldMayBeFinal")
     private @NotNull LaivyAuthApi api;
 
     @SuppressWarnings("unchecked")
-    private LaivyAuth() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public LaivyAuth() throws Throwable {
         // Retrieve implementation api using reflections
         @NotNull Class<LaivyAuthApi> implementation = (Class<LaivyAuthApi>) Class.forName("codes.laivy.auth.impl.LaivyAuthApiImpl");
-        api = implementation.newInstance();
+        @NotNull Constructor<LaivyAuthApi> constructor = implementation.getDeclaredConstructor(LaivyAuth.class);
+        constructor.setAccessible(true);
+
+        api = constructor.newInstance(this);
     }
 
     // Getters
