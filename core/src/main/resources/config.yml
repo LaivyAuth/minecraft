@@ -34,15 +34,23 @@ premium-automatic-auth:
   #    - If the verification process is successful, the player is considered a premium user and will not need to enter a password for future logins, provided they use a premium account.
   enabled: true
 
-  # The allowlist feature requires the premium automatic auth enabled.
-  whitelist:
-    # If false, cracked users (those who are using unauthorized copies of the game) will not be able to join the server.
-    # This helps prevent unauthorized access and maintain server integrity.
-    # Useful when you need to block cracked users temporarily or just want to use
-    # our amazing and wonderful authentication plugin without necessarily having cracked users, for api
-    # as example.
-    allow-cracked-users: true
+whitelist:
+  # If false, cracked users (those who are using unauthorized copies of the game) will not be able to join the server.
+  # This helps prevent unauthorized access and maintain server integrity.
+  # Useful when you need to block cracked users temporarily or just want to use
+  # our amazing and wonderful authentication plugin without necessarily having cracked users.
+  # For api purposes as example.
+  allow-cracked-users: true
 
+  # Here you can block some protocol versions to join the server.
+  # That will prevent clients from connecting with unwanted client versions.
+  # Here's the full versions list: https://wiki.vg/Protocol_version_numbers
+  block-protocol-versions:
+  #  - 767 # This blocks the 1.21
+  #  - 766 # This blocks the 1.20.6 and 1.20.5
+  
 email:
   # Defines if the players should be forced to enter an e-mail to authenticate
+  # You should consider change this option to 'true', it's safer, and you'll have
+  # a lead to announce your marketing offers :)
   required: false

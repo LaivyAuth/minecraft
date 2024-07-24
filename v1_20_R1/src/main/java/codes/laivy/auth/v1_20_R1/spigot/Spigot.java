@@ -87,10 +87,12 @@ final class Spigot implements Flushable {
         return new NettyInjection(channel) {
             @Override
             public @UnknownNullability Object read(@NotNull Channel channel, @NotNull ChannelHandlerContext context, @NotNull Object message) {
+                System.out.println("Read : " + message.getClass().getSimpleName());
                 return message;
             }
             @Override
             public @UnknownNullability Object write(@NotNull Channel channel, @NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) {
+                System.out.println("Write: " + message.getClass().getSimpleName());
                 return message;
             }
         };

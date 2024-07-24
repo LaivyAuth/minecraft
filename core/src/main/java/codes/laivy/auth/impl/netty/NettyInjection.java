@@ -43,6 +43,7 @@ public abstract class NettyInjection implements Flushable {
      */
     protected NettyInjection(@NotNull Channel channel) {
         this.channel = channel;
+        channel.pipeline().addFirst(new ChannelAcceptanceHandler());
     }
 
     // Getters

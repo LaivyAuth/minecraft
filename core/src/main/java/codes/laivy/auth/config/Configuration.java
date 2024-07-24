@@ -1,10 +1,12 @@
 package codes.laivy.auth.config;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Objects;
 
 public interface Configuration {
@@ -15,9 +17,9 @@ public interface Configuration {
         boolean debug = yaml.getBoolean("debug", false);
         @NotNull Duration checkUpdatesInterval = Duration.ofMinutes(yaml.getLong("updates.check", 60));
         boolean autoUpdate = yaml.getBoolean("updates.auto", true);
-        boolean allowPremiumUsers = yaml.getBoolean("whitelist.allow-premium-users", true);
         boolean allowCrackedUsers = yaml.getBoolean("whitelist.allow-cracked-users", true);
         boolean automaticAuthentication = yaml.getBoolean("premium-automatic-auth.enabled", true);
+        int[] blockedVersions = ArrayUtils.toPrimitive(yaml.getIntegerList("whitelist.block-protocol-versions").toArray(new Integer[0]));
 
         return new Configuration() {
 
@@ -47,6 +49,11 @@ public interface Configuration {
                 return automaticAuthentication;
             }
 
+            @Override
+            public int @NotNull [] getBlockedVersions() {
+                return blockedVersions;
+            }
+
             // Implementations
 
             @Override
@@ -54,22 +61,22 @@ public interface Configuration {
                 if (this == object) return true;
                 if (!(object instanceof Configuration)) return false;
                 @NotNull Configuration that = (Configuration) object;
-                return isDebug() == that.isDebug() && isAutoUpdate() == that.isAutoUpdate() && isAllowCrackedUsers() == that.isAllowCrackedUsers() && isAutomaticAuthentication() == that.isAutomaticAuthentication() && Objects.equals(getCheckUpdatesInterval(), that.getCheckUpdatesInterval());
+                return isDebug() == that.isDebug() && isAutoUpdate() == that.isAutoUpdate() && isAllowCrackedUsers() == that.isAllowCrackedUsers() && isAutomaticAuthentication() == that.isAutomaticAuthentication() && Objects.equals(getCheckUpdatesInterval(), that.getCheckUpdatesInterval()) && Arrays.equals(getBlockedVersions(), that.getBlockedVersions());
             }
             @Override
             public int hashCode() {
-                return Objects.hash(isDebug(), getCheckUpdatesInterval(), isAutoUpdate(), isAllowCrackedUsers(), isAutomaticAuthentication());
+                return Objects.hash(isDebug(), getCheckUpdatesInterval(), isAutoUpdate(), isAllowCrackedUsers(), isAutomaticAuthentication(), Arrays.hashCode(getBlockedVersions()));
             }
 
             @Override
             public @NotNull String toString() {
                 return "Configuration{" +
-                        "debug=" + debug +
-                        ", checkUpdatesInterval=" + checkUpdatesInterval +
-                        ", autoUpdate=" + autoUpdate +
-                        ", allowPremiumUsers=" + allowPremiumUsers +
-                        ", allowCrackedUsers=" + allowCrackedUsers +
-                        ", automaticAuthentication=" + automaticAuthentication +
+                        "debug=" + isDebug() +
+                        ", checkUpdatesInterval=" + getCheckUpdatesInterval() +
+                        ", autoUpdate=" + isAutoUpdate() +
+                        ", allowCrackedUsers=" + isAllowCrackedUsers() +
+                        ", automaticAuthentication=" + isAutomaticAuthentication() +
+                        ", blockedVersions=" + Arrays.toString(getBlockedVersions()) +
                         '}';
             }
 
@@ -85,5 +92,7 @@ public interface Configuration {
 
     boolean isAllowCrackedUsers();
     boolean isAutomaticAuthentication();
+
+    int @NotNull [] getBlockedVersions();
 
 }
