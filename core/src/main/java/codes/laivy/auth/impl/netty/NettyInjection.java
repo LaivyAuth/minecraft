@@ -21,6 +21,7 @@ import java.util.*;
  * <p>
  * This class is abstract because it contains two abstract methods for monitoring the sent and received packets.
  */
+// todo: channel close
 public abstract class NettyInjection implements Flushable {
 
     // Static initializers
@@ -106,6 +107,15 @@ public abstract class NettyInjection implements Flushable {
      */
     public abstract @UnknownNullability Object write(@NotNull Channel channel, @NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise);
 
+    /**
+     * Called when a channel disconnects and finish close from the netty injector.
+     * This method is called after the {@link #eject(Channel)}.
+     *
+     * @param channel the channel that has been closed.
+     * @param context the channel handler context.
+     */
+    public abstract void close(@NotNull Channel channel, @NotNull ChannelHandlerContext context);
+
     // Loaders
 
     /**
@@ -171,6 +181,16 @@ public abstract class NettyInjection implements Flushable {
                         inject(channel);
 
                         super.channelActive(ctx);
+                    }
+
+                    @Override
+                    public void channelInactive(ChannelHandlerContext context) throws Exception {
+                        @NotNull Channel channel = context.channel();
+                        eject(channel);
+
+                        close(channel, context);
+
+                        super.channelInactive(context);
                     }
                 });
             }
