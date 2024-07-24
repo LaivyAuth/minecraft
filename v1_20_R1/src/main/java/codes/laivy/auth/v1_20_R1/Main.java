@@ -16,8 +16,12 @@ public final class Main implements Mapping {
 
     // Static initializers
 
+    private static @NotNull String name() {
+        return "1.20.1 Mapping";
+    }
+
     // todo: module name at the logger name
-    public static final @NotNull Logger log = LoggerFactory.getLogger(Main.class);
+    public static final @NotNull Logger log = LoggerFactory.getLogger(name());
 
     // Object
 
@@ -44,7 +48,7 @@ public final class Main implements Mapping {
 
     @Override
     public @NotNull String getName() {
-        return "1.20.1 Mapping";
+        return name();
     }
 
     @Override

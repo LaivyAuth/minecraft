@@ -5,16 +5,20 @@ import net.minecraft.server.network.ServerConnection;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Flushable;
-import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 final class Injector implements Flushable {
+
+    // Static initializers
+
+    private static final @NotNull Object lock = new Object();
+    private static final @NotNull Logger log = LoggerFactory.getLogger(Injector.class);
 
     // Object
 
@@ -39,30 +43,40 @@ final class Injector implements Flushable {
     // Modules
 
     public void inject(@NotNull Channel channel) {
-        @NotNull ChannelDuplexHandler handler = new ChannelDuplexHandler() {
-            @Override
-            public void channelRead(@NotNull ChannelHandlerContext context, @NotNull Object message) throws Exception {
-                System.out.println("Read: '" + message.getClass().getSimpleName() + "'");
-                super.channelRead(context, message);
-            }
+        @NotNull ChannelDuplexHandler handler = new ChannelExecutorHandler();
 
-            @Override
-            public void write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws Exception {
-                super.write(context, message, promise);
-            }
-        };
-
-        channel.pipeline().addBefore("packet_handler", "laivy_auth_" + channel.localAddress(), handler);
+        synchronized (lock) {
+            channel.pipeline().addBefore("packet_handler", "laivy_auth_" + channel.localAddress(), handler);
+            handlers.put(channel, handler);
+        }
     }
     public void eject(@NotNull Channel channel) {
-
+        synchronized (lock) {
+            @Nullable ChannelHandler handler = handlers.remove(channel);
+            if (handler != null) channel.pipeline().remove(handler);
+        }
     }
 
     // Loaders
 
     @Override
-    public void flush() throws IOException {
+    @SuppressWarnings("WhileLoopReplaceableByForEach")
+    public void flush() {
+        synchronized (lock) {
+            @NotNull Iterator<Channel> iterator = handlers.keySet().iterator();
 
+            while (iterator.hasNext()) {
+                @NotNull Channel channel = iterator.next();
+
+                try {
+                    @Nullable ChannelHandler handler = handlers.remove(channel);
+                    if (handler != null) channel.pipeline().remove(handler);
+                } catch (@NotNull Throwable throwable) {
+                    log.error("Cannot unload {} channel: {}", channel.localAddress(), throwable.getMessage());
+                    log.atDebug().setCause(throwable).log();
+                }
+            }
+        }
     }
 
     // Classes
@@ -83,6 +97,17 @@ final class Injector implements Flushable {
             }
 
             context.fireChannelRead(message);
+        }
+    }
+    private static final class ChannelExecutorHandler extends ChannelDuplexHandler {
+        @Override
+        public void channelRead(@NotNull ChannelHandlerContext context, @NotNull Object message) throws Exception {
+            super.channelRead(context, message);
+        }
+
+        @Override
+        public void write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws Exception {
+            super.write(context, message, promise);
         }
     }
 

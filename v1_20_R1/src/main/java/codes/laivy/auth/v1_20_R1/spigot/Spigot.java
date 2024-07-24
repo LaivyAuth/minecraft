@@ -10,7 +10,7 @@ final class Spigot implements Flushable {
 
     // Static initializers
 
-    private static @UnknownNullability Spigot instance;
+    private static volatile @UnknownNullability Spigot instance;
 
     public static synchronized void initialize() throws NoSuchFieldException, IllegalAccessException {
         instance = new Spigot();
