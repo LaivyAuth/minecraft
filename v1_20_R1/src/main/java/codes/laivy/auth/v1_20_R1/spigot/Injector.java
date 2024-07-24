@@ -71,6 +71,7 @@ final class Injector implements Flushable {
                 try {
                     @Nullable ChannelHandler handler = handlers.remove(channel);
                     if (handler != null) channel.pipeline().remove(handler);
+                } catch (@NotNull NoSuchElementException ignore) {
                 } catch (@NotNull Throwable throwable) {
                     log.error("Cannot unload {} channel: {}", channel.localAddress(), throwable.getMessage());
                     log.atDebug().setCause(throwable).log();

@@ -24,15 +24,6 @@ updates:
   # Note: This setting is ignored if 'check' is set to false.
   auto: true
 
-whitelist:
-  # If false, premium users (those who have purchased the game) will not be able to join the server.
-  # This setting allows server administrators to control access based on the user type.
-  allow-premium-users: true
-
-  # If false, cracked users (those who are using unauthorized copies of the game) will not be able to join the server.
-  # This helps prevent unauthorized access and maintain server integrity.
-  allow-cracked-users: true
-
 premium-automatic-auth:
   # When enabled, premium users will not need to authenticate using commands.
   # The plugin differentiates between premium and cracked users as follows:
@@ -42,3 +33,16 @@ premium-automatic-auth:
   #    - If the verification process fails, the client is considered a cracked user and must enter a password.
   #    - If the verification process is successful, the player is considered a premium user and will not need to enter a password for future logins, provided they use a premium account.
   enabled: true
+
+  # The allowlist feature requires the premium automatic auth enabled.
+  whitelist:
+    # If false, cracked users (those who are using unauthorized copies of the game) will not be able to join the server.
+    # This helps prevent unauthorized access and maintain server integrity.
+    # Useful when you need to block cracked users temporarily or just want to use
+    # our amazing and wonderful authentication plugin without necessarily having cracked users, for api
+    # as example.
+    allow-cracked-users: true
+
+email:
+  # Defines if the players should be forced to enter an e-mail to authenticate
+  required: false

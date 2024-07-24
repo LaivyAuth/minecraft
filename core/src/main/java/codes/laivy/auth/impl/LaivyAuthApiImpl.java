@@ -2,8 +2,8 @@ package codes.laivy.auth.impl;
 
 import codes.laivy.auth.LaivyAuth;
 import codes.laivy.auth.api.LaivyAuthApi;
+import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.utilities.AccountType;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -16,7 +16,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.JarFile;
@@ -174,99 +173,6 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
             mappings.clear();
             mapping = null;
         }
-    }
-
-    // Classes
-
-    public static final class Configuration {
-
-        // Static initializers
-
-        public static @NotNull Configuration read(@NotNull FileConfiguration yaml) {
-            boolean debug = yaml.getBoolean("debug", false);
-            @NotNull Duration checkUpdatesInterval = Duration.ofMinutes(yaml.getLong("updates.check", 60));
-            boolean autoUpdate = yaml.getBoolean("updates.auto", true);
-            boolean allowPremiumUsers = yaml.getBoolean("whitelist.allow-premium-users", true);
-            boolean allowCrackedUsers = yaml.getBoolean("whitelist.allow-cracked-users", true);
-            boolean automaticAuthentication = yaml.getBoolean("premium-automatic-auth.enabled", true);
-
-            return new Configuration(debug, checkUpdatesInterval, autoUpdate, allowPremiumUsers, allowCrackedUsers, automaticAuthentication);
-        }
-
-        // Object
-
-        private final boolean debug;
-
-        // Updates
-        private final @NotNull Duration checkUpdatesInterval;
-        private final boolean autoUpdate;
-
-        // Whitelist
-        private final boolean allowPremiumUsers;
-        private final boolean allowCrackedUsers;
-
-        // Premium Authentication
-        private final boolean automaticAuthentication;
-
-        private Configuration(boolean debug, @NotNull Duration checkUpdatesInterval, boolean autoUpdate, boolean allowPremiumUsers, boolean allowCrackedUsers, boolean automaticAuthentication) {
-            this.debug = debug;
-            this.checkUpdatesInterval = checkUpdatesInterval;
-            this.autoUpdate = autoUpdate;
-            this.allowPremiumUsers = allowPremiumUsers;
-            this.allowCrackedUsers = allowCrackedUsers;
-            this.automaticAuthentication = automaticAuthentication;
-        }
-
-        // Getters
-
-        public boolean isDebug() {
-            return debug;
-        }
-
-        public @NotNull Duration getCheckUpdatesInterval() {
-            return checkUpdatesInterval;
-        }
-        public boolean isAutoUpdate() {
-            return autoUpdate;
-        }
-
-        public boolean isAllowPremiumUsers() {
-            return allowPremiumUsers;
-        }
-        public boolean isAllowCrackedUsers() {
-            return allowCrackedUsers;
-        }
-
-        public boolean isAutomaticAuthentication() {
-            return automaticAuthentication;
-        }
-
-        // Implementations
-
-        @Override
-        public boolean equals(@Nullable Object object) {
-            if (this == object) return true;
-            if (!(object instanceof Configuration)) return false;
-            @NotNull Configuration that = (Configuration) object;
-            return isDebug() == that.isDebug() && isAutoUpdate() == that.isAutoUpdate() && isAllowPremiumUsers() == that.isAllowPremiumUsers() && isAllowCrackedUsers() == that.isAllowCrackedUsers() && isAutomaticAuthentication() == that.isAutomaticAuthentication() && Objects.equals(getCheckUpdatesInterval(), that.getCheckUpdatesInterval());
-        }
-        @Override
-        public int hashCode() {
-            return Objects.hash(isDebug(), getCheckUpdatesInterval(), isAutoUpdate(), isAllowPremiumUsers(), isAllowCrackedUsers(), isAutomaticAuthentication());
-        }
-
-        @Override
-        public @NotNull String toString() {
-            return "Configuration{" +
-                    "debug=" + debug +
-                    ", checkUpdatesInterval=" + checkUpdatesInterval +
-                    ", autoUpdate=" + autoUpdate +
-                    ", allowPremiumUsers=" + allowPremiumUsers +
-                    ", allowCrackedUsers=" + allowCrackedUsers +
-                    ", automaticAuthentication=" + automaticAuthentication +
-                    '}';
-        }
-
     }
 
 }
