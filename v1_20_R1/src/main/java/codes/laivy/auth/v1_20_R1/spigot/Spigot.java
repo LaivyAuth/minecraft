@@ -37,7 +37,7 @@ final class Spigot implements Flushable {
 
     // Object
 
-    private final @NotNull NettyInjection injection;
+    private final @NotNull Injection injection;
 
     @SuppressWarnings("unchecked")
     private Spigot() throws NoSuchFieldException, IllegalAccessException {
@@ -52,12 +52,12 @@ final class Spigot implements Flushable {
 
         // Add acceptance handler to pipeline
         @NotNull Channel channel = list.get(0).channel();
-        this.injection = injection(channel);
+        this.injection = new Injection(channel);
     }
 
     // Getters
 
-    public @NotNull NettyInjection getInjection() {
+    public @NotNull Injection getInjection() {
         return injection;
     }
 
@@ -79,23 +79,6 @@ final class Spigot implements Flushable {
     @Override
     public int hashCode() {
         return Objects.hashCode(getInjection());
-    }
-
-    // Utilities
-
-    private static @NotNull NettyInjection injection(@NotNull Channel channel) {
-        return new NettyInjection(channel) {
-            @Override
-            public @UnknownNullability Object read(@NotNull Channel channel, @NotNull ChannelHandlerContext context, @NotNull Object message) {
-                System.out.println("Read : " + message.getClass().getSimpleName());
-                return message;
-            }
-            @Override
-            public @UnknownNullability Object write(@NotNull Channel channel, @NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) {
-                System.out.println("Write: " + message.getClass().getSimpleName());
-                return message;
-            }
-        };
     }
 
 }
