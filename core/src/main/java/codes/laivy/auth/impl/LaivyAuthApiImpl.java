@@ -2,6 +2,7 @@ package codes.laivy.auth.impl;
 
 import codes.laivy.auth.LaivyAuth;
 import codes.laivy.auth.api.LaivyAuthApi;
+import codes.laivy.auth.utilities.AccountType;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,10 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.time.Duration;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.JarFile;
 
@@ -33,6 +31,9 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
     private final @NotNull ReentrantLock lock = new ReentrantLock();
     private volatile boolean flushed = false;
+
+    // todo: persistent unloading
+    private final @NotNull Map<@NotNull UUID, AccountType> types = new HashMap<>();
 
     private final @NotNull Configuration configuration;
     private final @NotNull Set<Mapping> mappings = new HashSet<>();
@@ -119,6 +120,20 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         }
 
         return mapping;
+    }
+
+    @Override
+    public @Nullable AccountType getAccountType(@NotNull UUID uuid) {
+        synchronized (types) {
+            return types.getOrDefault(uuid, null);
+        }
+    }
+    @Override
+    public void setAccountType(@NotNull UUID uuid, @Nullable AccountType type) {
+        synchronized (types) {
+            if (type != null) types.put(uuid, type);
+            else types.remove(uuid);
+        }
     }
 
     @Override
