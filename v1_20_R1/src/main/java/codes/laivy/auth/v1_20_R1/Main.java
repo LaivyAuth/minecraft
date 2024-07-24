@@ -4,14 +4,20 @@ import codes.laivy.auth.impl.Mapping;
 import codes.laivy.auth.utilities.Version;
 import codes.laivy.auth.utilities.platform.Platform;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public final class Main implements Mapping {
+
+    // Static initializers
+
+    // todo: module name at the logger name
+    public static final @NotNull Logger log = LoggerFactory.getLogger(Main.class);
 
     // Object
 
@@ -38,7 +44,7 @@ public final class Main implements Mapping {
 
     @Override
     public @NotNull String getName() {
-        return "v1_20_R1";
+        return "1.20.1 Mapping";
     }
 
     @Override
@@ -80,12 +86,42 @@ public final class Main implements Mapping {
     // Loaders
 
     @Override
-    public void start() throws Throwable {
+    public void start() {
+        if (Platform.SPIGOT.isCompatible()) try {
+            @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
 
+            @NotNull Method method = target.getDeclaredMethod("initialize");
+            method.setAccessible(true);
+
+            method.invoke(null);
+        } catch (@NotNull ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
+            log.atError().setCause(e).log("An unknown error occurred trying to load mapping");
+        } catch (@NotNull InvocationTargetException e) {
+            log.atError().setCause(e).log("Cannot initialize spigot mapping: {}", e.getMessage());
+        } else if (Platform.SPONGE.isCompatible()) {
+            throw new UnsupportedOperationException();
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
     @Override
-    public void close() throws IOException {
+    public void close() {
+        if (Platform.SPIGOT.isCompatible()) try {
+            @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
 
+            @NotNull Method method = target.getDeclaredMethod("interrupt");
+            method.setAccessible(true);
+
+            method.invoke(null);
+        } catch (@NotNull ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
+            log.atError().setCause(e).log("An unknown error occurred trying to unload mapping");
+        } catch (@NotNull InvocationTargetException e) {
+            log.atError().setCause(e).log("Cannot interrupt spigot mapping: {}", e.getMessage());
+        } else if (Platform.SPONGE.isCompatible()) {
+            throw new UnsupportedOperationException();
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     // Utilities
