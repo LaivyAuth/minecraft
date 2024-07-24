@@ -1,5 +1,6 @@
 package codes.laivy.auth.api;
 
+import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.utilities.AccountType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,10 @@ public interface LaivyAuthApi extends Flushable {
     boolean isRegistered(@NotNull UUID uuid);
     boolean isAuthenticated(@NotNull UUID uuid);
 
-    boolean isDebug();
+    @NotNull Configuration getConfiguration();
+
+    default boolean isDebug() {
+        return getConfiguration().isDebug();
+    }
 
 }

@@ -103,6 +103,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
     // Getters
 
+    @Override
     public @NotNull Configuration getConfiguration() {
         return configuration;
     }
