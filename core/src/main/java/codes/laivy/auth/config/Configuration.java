@@ -9,6 +9,8 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Objects;
 
+// todo: Custom "Failed to verify username" message
+// todo: Remove "UUID of player" message
 public interface Configuration {
 
     // Static initializers

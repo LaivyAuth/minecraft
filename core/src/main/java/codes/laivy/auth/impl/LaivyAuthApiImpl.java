@@ -59,10 +59,10 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
                 if (Mapping.class.isAssignableFrom(main)) {
                     //noinspection unchecked
-                    @NotNull Constructor<Mapping> constructor = ((Class<Mapping>) main).getDeclaredConstructor(ClassLoader.class, boolean.class);
+                    @NotNull Constructor<Mapping> constructor = ((Class<Mapping>) main).getDeclaredConstructor(ClassLoader.class, LaivyAuthApi.class);
                     constructor.setAccessible(true);
 
-                    @NotNull Mapping mapping = constructor.newInstance(classLoader, getConfiguration().isDebug());
+                    @NotNull Mapping mapping = constructor.newInstance(classLoader, this);
                     mappings.add(mapping);
                 } else {
                     log.error("The main class of mapping '{}' isn't an instance of '{}'.", mappingFile.getName(), Mapping.class);
@@ -72,7 +72,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
                 log.atDebug().setCause(e).log();
             }
         } catch (@NotNull NoSuchMethodException e) {
-            log.error("Cannot find a valid constructor of mapping '{}'. It should have a constructor with '{}' and '{}' parameters.", mappingFile.getName(), ClassLoader.class, boolean.class);
+            log.error("Cannot find a valid constructor of mapping '{}'. It should have a constructor with '{}' and '{}' parameters.", mappingFile.getName(), ClassLoader.class, LaivyAuthApi.class);
             log.atDebug().setCause(e).log();
         } catch (@NotNull ClassNotFoundException e) {
             log.error("Cannot find main class of mapping '{}'. It should have the 'Main-Class' attribute at jar meta file.", mappingFile.getName());

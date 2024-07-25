@@ -1,9 +1,11 @@
 package codes.laivy.auth.v1_20_R1;
 
+import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.impl.Mapping;
 import codes.laivy.auth.utilities.Version;
 import codes.laivy.auth.utilities.platform.Platform;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.UnknownNullability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +18,8 @@ public final class Main implements Mapping {
 
     // Static initializers
 
+    private static @UnknownNullability Main instance;
+
     private static @NotNull String name() {
         return "1.20.1 Mapping";
     }
@@ -26,22 +30,23 @@ public final class Main implements Mapping {
     // Object
 
     private final @NotNull ClassLoader classLoader;
-    private final boolean debug;
+    private final @NotNull LaivyAuthApi api;
 
-    private Main(@NotNull ClassLoader classLoader, boolean debug) {
+    private Main(@NotNull ClassLoader classLoader, @NotNull LaivyAuthApi api) {
         this.classLoader = classLoader;
-        this.debug = debug;
+        this.api = api;
+
+        Main.instance = this;
     }
 
     // Getters
 
-    public boolean isDebug() {
-        return debug;
-    }
-
     @Override
     public @NotNull ClassLoader getClassLoader() {
         return classLoader;
+    }
+    public static @NotNull LaivyAuthApi getApi() {
+        return instance.api;
     }
 
     // Mapping
