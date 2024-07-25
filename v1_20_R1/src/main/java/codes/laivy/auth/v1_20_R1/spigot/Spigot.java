@@ -1,11 +1,10 @@
 package codes.laivy.auth.v1_20_R1.spigot;
 
-import codes.laivy.auth.impl.netty.NettyInjection;
+import codes.laivy.auth.v1_20_R1.Main;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
 import net.minecraft.server.network.ServerConnection;
+import net.minecraft.server.players.PlayerList;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +40,11 @@ final class Spigot implements Flushable {
 
     @SuppressWarnings("unchecked")
     private Spigot() throws NoSuchFieldException, IllegalAccessException {
+        // Set online-mode=true if automatic authentication enabled
+        if (Main.getApi().getConfiguration().isAutomaticAuthentication()) {
+            ((CraftServer) Bukkit.getServer()).getServer().d(true);
+        }
+
         // Retrieve server connection instance
         @NotNull ServerConnection connection = Objects.requireNonNull(((CraftServer) Bukkit.getServer()).getServer().ad(), "cannot retrieve server connection");
 
