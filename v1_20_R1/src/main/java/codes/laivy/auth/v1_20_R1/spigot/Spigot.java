@@ -4,7 +4,6 @@ import codes.laivy.auth.v1_20_R1.Main;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import net.minecraft.server.network.ServerConnection;
-import net.minecraft.server.players.PlayerList;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +40,7 @@ final class Spigot implements Flushable {
     @SuppressWarnings("unchecked")
     private Spigot() throws NoSuchFieldException, IllegalAccessException {
         // Set online-mode=true if automatic authentication enabled
-        if (Main.getApi().getConfiguration().isAutomaticAuthentication()) {
+        if (Main.getConfiguration().isAutomaticAuthentication()) {
             ((CraftServer) Bukkit.getServer()).getServer().d(true);
         }
 

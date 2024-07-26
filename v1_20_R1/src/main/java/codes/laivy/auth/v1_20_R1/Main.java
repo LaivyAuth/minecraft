@@ -1,6 +1,7 @@
 package codes.laivy.auth.v1_20_R1;
 
 import codes.laivy.auth.api.LaivyAuthApi;
+import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.impl.Mapping;
 import codes.laivy.auth.utilities.Version;
 import codes.laivy.auth.utilities.platform.Platform;
@@ -31,10 +32,12 @@ public final class Main implements Mapping {
 
     private final @NotNull ClassLoader classLoader;
     private final @NotNull LaivyAuthApi api;
+    private final @NotNull Configuration configuration;
 
-    private Main(@NotNull ClassLoader classLoader, @NotNull LaivyAuthApi api) {
+    private Main(@NotNull ClassLoader classLoader, @NotNull LaivyAuthApi api, @NotNull Configuration configuration) {
         this.classLoader = classLoader;
         this.api = api;
+        this.configuration = configuration;
 
         Main.instance = this;
     }
@@ -47,6 +50,9 @@ public final class Main implements Mapping {
     }
     public static @NotNull LaivyAuthApi getApi() {
         return instance.api;
+    }
+    public static @NotNull Configuration getConfiguration() {
+        return instance.configuration;
     }
 
     // Mapping
