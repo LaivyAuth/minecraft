@@ -190,6 +190,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         return configuration;
     }
 
+    @Override
     public @NotNull LaivyAuth getPlugin() {
         return plugin;
     }

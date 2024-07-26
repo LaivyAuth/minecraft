@@ -191,7 +191,6 @@ final class Injection implements Flushable {
         public void channelRead(@NotNull ChannelHandlerContext context, @NotNull Object message) throws Exception {
             @NotNull Channel channel = context.channel();
 
-            System.out.println("Read : '" + message.getClass().getSimpleName() + "'");
             if (message instanceof PacketHandshakingInSetProtocol packet) {
                 versions.put(channel, packet.c());
             } else if (message instanceof PacketLoginInStart start) { // Create profile for channel
@@ -274,7 +273,6 @@ final class Injection implements Flushable {
         public void write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws Exception {
             @NotNull Channel channel = context.channel();
 
-            System.out.println("Write: '" + message.getClass().getSimpleName() + "'");
             if (message instanceof PacketLoginOutEncryptionBegin begin) {
                 @NotNull Identifier identifier = identifiers.get(nicknames.get(channel));
 
@@ -283,7 +281,8 @@ final class Injection implements Flushable {
                         identifier.setReconnect(false);
                         identifier.pending = false;
 
-                        message = new PacketLoginOutDisconnect(IChatBaseComponent.a("Reconnect"));
+                        // todo: message.yml
+                        message = new PacketLoginOutDisconnect(IChatBaseComponent.a("§aAccount Verified\n§aPlease reconnect again\n\n§cIf you get kicked again due to §4Failed to log in: ... (Try restarting your game) §creconnect once more, it's normal!"));
                     }
                 } else try {
                     if (identifier.getType() == Type.CRACKED) {
@@ -308,7 +307,12 @@ final class Injection implements Flushable {
                 }
             } else if (message instanceof PacketLoginOutSuccess) {
                 if (Arrays.stream(getConfiguration().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
-                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("Test"));
+                    // todo: message.yml
+                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("Unsupported version!"));
+                    return;
+                } else if ( !getConfiguration().isAllowCrackedUsers()) {
+                    // todo: message.yml
+                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("Cracked users don't allowed yet"));
                     return;
                 }
             }
@@ -358,12 +362,6 @@ final class Injection implements Flushable {
             }
 
             super.channelInactive(context);
-        }
-
-        @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-            cause.printStackTrace();
-            System.out.println("Caught exception!");
         }
     }
 
