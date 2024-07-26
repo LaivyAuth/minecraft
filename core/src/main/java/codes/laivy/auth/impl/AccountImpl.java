@@ -24,6 +24,7 @@ final class AccountImpl implements Account {
 
     private char @Nullable [] password;
     private boolean authenticated;
+    private @Nullable Integer version;
 
     private @Nullable Instant registration;
 
@@ -33,13 +34,14 @@ final class AccountImpl implements Account {
 
     // Constructor
 
-    AccountImpl(@NotNull LaivyAuthApiImpl api, @NotNull String name, @NotNull UUID uuid, @Nullable Type type, char @Nullable [] password, boolean authenticated, @Nullable Instant registration, @Nullable Instant lastPlayingTimeCheck, @NotNull Duration playingTime) {
+    AccountImpl(@NotNull LaivyAuthApiImpl api, @NotNull String name, @NotNull UUID uuid, @Nullable Type type, char @Nullable [] password, boolean authenticated, @Nullable Integer version, @Nullable Instant registration, @Nullable Instant lastPlayingTimeCheck, @NotNull Duration playingTime) {
         this.api = api;
         this.name = name;
         this.uuid = uuid;
         this.type = type;
         this.password = password;
         this.authenticated = authenticated;
+        this.version = version;
         this.registration = registration;
         this.lastPlayingTimeCheck = lastPlayingTimeCheck;
         this.playingTime = playingTime;
@@ -89,6 +91,15 @@ final class AccountImpl implements Account {
         } else {
             this.type = type;
         }
+    }
+
+    @Override
+    public @Nullable Integer getVersion() {
+        return version;
+    }
+    @Override
+    public void setVersion(int version) {
+        this.version = version;
     }
 
     @Override

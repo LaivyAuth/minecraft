@@ -20,6 +20,9 @@ public interface Account {
     @Nullable Type getType() throws UnsupportedOperationException;
     void setType(@Nullable Type type) throws UnsupportedOperationException;
 
+    @Nullable Integer getVersion();
+    void setVersion(int version);
+
 //    @Nullable String getEmail();
 //    boolean isVerified();
 

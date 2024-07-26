@@ -154,7 +154,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
                 throw new AccountExistsException("an account with the nickname '" + nickname + "' already exists.");
             } else {
                 @Nullable Instant last = Bukkit.getPlayer(uuid) != null ? Instant.now() : null;
-                @NotNull Account account = new AccountImpl(this, nickname, uuid, null, null, false, null, last, Duration.ZERO);
+                @NotNull Account account = new AccountImpl(this, nickname, uuid, null, null, false, null, null, last, Duration.ZERO);
 
                 accounts.put(uuid, account);
                 return account;

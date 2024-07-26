@@ -17,6 +17,8 @@ import java.io.Closeable;
  */
 public interface Mapping extends Closeable {
 
+    // Getters
+
     /**
      * Retrieves the class loader associated with this mapping.
      *
@@ -67,6 +69,8 @@ public interface Mapping extends Closeable {
      */
     boolean isCompatible();
 
+    // Modules
+
     /**
      * Initializes the module, loading all necessary information to start. The mapping
      * must be compatible, or errors will occur.
@@ -75,7 +79,5 @@ public interface Mapping extends Closeable {
      */
     @ApiStatus.Internal
     void start() throws Throwable;
-
-    // Classes
 
 }

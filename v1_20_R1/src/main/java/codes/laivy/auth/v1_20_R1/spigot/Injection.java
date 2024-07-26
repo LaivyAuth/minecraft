@@ -9,10 +9,8 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.PacketDecrypter;
 import net.minecraft.network.PacketEncrypter;
 import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.protocol.login.PacketLoginInEncryptionBegin;
-import net.minecraft.network.protocol.login.PacketLoginInStart;
-import net.minecraft.network.protocol.login.PacketLoginOutDisconnect;
-import net.minecraft.network.protocol.login.PacketLoginOutEncryptionBegin;
+import net.minecraft.network.protocol.handshake.PacketHandshakingInSetProtocol;
+import net.minecraft.network.protocol.login.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.LoginListener;
 import net.minecraft.server.network.ServerConnection;
@@ -36,10 +34,13 @@ import java.util.*;
 
 import static codes.laivy.auth.core.Account.Type;
 import static codes.laivy.auth.v1_20_R1.Main.getApi;
+import static codes.laivy.auth.v1_20_R1.Main.getConfiguration;
 
 final class Injection implements Flushable {
 
     // Object
+
+    private final @NotNull Map<@NotNull Channel, @NotNull Integer> versions = new HashMap<>();
 
     private final @NotNull Map<@NotNull Channel, @NotNull String> nicknames = new HashMap<>();
     private final @NotNull Map<@NotNull String, @NotNull Identifier> identifiers = new HashMap<>();
@@ -83,9 +84,11 @@ final class Injection implements Flushable {
 
     // Classes
 
-    private static final class Identifier {
+    private final class Identifier implements Flushable {
 
         // Object
+
+        private final @NotNull Channel channel;
 
         private final @NotNull String name;
         private @Nullable UUID uuid;
@@ -94,7 +97,8 @@ final class Injection implements Flushable {
         private boolean reconnect = true;
         private boolean pending = false;
 
-        private Identifier(@NotNull String name) {
+        private Identifier(@NotNull Channel channel, @NotNull String name) {
+            this.channel = channel;
             this.name = name;
         }
 
@@ -119,6 +123,14 @@ final class Injection implements Flushable {
         }
         public void setType(@NotNull Type type) {
             this.type = type;
+        }
+
+        // Modules
+
+        @Override
+        public void flush() throws IOException {
+            nicknames.remove(channel);
+            identifiers.remove(getName());
         }
 
         // Implementations
@@ -178,78 +190,81 @@ final class Injection implements Flushable {
         @Override
         public void channelRead(@NotNull ChannelHandlerContext context, @NotNull Object message) throws Exception {
             @NotNull Channel channel = context.channel();
-            System.out.println("Message: '" + message.getClass().getSimpleName() + "'");
 
-            if (message instanceof PacketLoginInStart start) { // Create profile for channel
+            System.out.println("Read : '" + message.getClass().getSimpleName() + "'");
+            if (message instanceof PacketHandshakingInSetProtocol packet) {
+                versions.put(channel, packet.c());
+            } else if (message instanceof PacketLoginInStart start) { // Create profile for channel
                 @NotNull String nickname = start.a();
                 nicknames.put(channel, nickname);
 
                 if (!identifiers.containsKey(nickname)) {
-                    @NotNull Identifier identifier = new Identifier(nickname);
+                    @NotNull Identifier identifier = new Identifier(channel, nickname);
                     identifiers.put(nickname, identifier);
                 }
-            } else if (message instanceof PacketLoginInEncryptionBegin begin) try {
-                @NotNull PrivateKey privateKey = ((CraftServer) Bukkit.getServer()).getServer().L().getPrivate();
-                @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
-                @NotNull MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
-
+            } else if (message instanceof PacketLoginInEncryptionBegin begin) {
                 // Identifier
                 @NotNull String nickname = nicknames.get(channel);
                 @NotNull Identifier identifier = identifiers.get(nickname);
 
-                // Address and encryption
-                byte[] encryption = getEncryptionBytes(listener);
-                @Nullable InetAddress address = server.V() && listener.g.c() instanceof InetSocketAddress ? ((InetSocketAddress) listener.g.c()).getAddress() : null;
-
-                // Hash
-                @NotNull PrivateKey privatekey = server.L().getPrivate();
-                @NotNull String secret;
-
                 try {
-                    if (!begin.a(encryption, privatekey)) {
-                        throw new IllegalStateException("Protocol error");
-                    } else {
-                        @NotNull SecretKey secretkey = begin.a(privatekey);
-                        secret = (new BigInteger(MinecraftEncryption.a("", server.L().getPublic(), secretkey))).toString(16);
+                    @NotNull PrivateKey privateKey = ((CraftServer) Bukkit.getServer()).getServer().L().getPrivate();
+                    @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
+                    @NotNull MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
+
+                    // Address and encryption
+                    byte[] encryption = getEncryptionBytes(listener);
+                    @Nullable InetAddress address = server.V() && listener.g.c() instanceof InetSocketAddress ? ((InetSocketAddress) listener.g.c()).getAddress() : null;
+
+                    // Hash
+                    @NotNull PrivateKey privatekey = server.L().getPrivate();
+                    @NotNull String secret;
+
+                    try {
+                        if (!begin.a(encryption, privatekey)) {
+                            throw new IllegalStateException("Protocol error");
+                        } else {
+                            @NotNull SecretKey secretkey = begin.a(privatekey);
+                            secret = (new BigInteger(MinecraftEncryption.a("", server.L().getPublic(), secretkey))).toString(16);
+                        }
+                    } catch (@NotNull CryptographyException exception) {
+                        throw new IllegalStateException("Protocol error", exception);
                     }
-                } catch (@NotNull CryptographyException exception) {
-                    throw new IllegalStateException("Protocol error", exception);
+
+                    // Check if the session was successful
+                    @NotNull GameProfile approved = server.am().hasJoinedServer(new GameProfile(null, nickname), secret, address);
+
+                    if (approved != null) try {
+                        identifier.setType(Type.PREMIUM);
+                        listener.a(begin);
+                    } catch (@NotNull Throwable throwable) {
+                        Main.log.error("Cannot authenticate premium player {}.", nickname);
+                        Main.log.atDebug().setCause(throwable).log();
+                    } else try {
+                        // Set type
+                        identifier.setType(Type.CRACKED);
+
+                        // Encryptor and Decryptor
+                        @NotNull SecretKey secretkey = begin.a(privatekey);
+                        @NotNull Cipher cipher = MinecraftEncryption.a(2, secretkey);
+                        @NotNull Cipher cipher1 = MinecraftEncryption.a(1, secretkey);
+                        channel.pipeline().addBefore("splitter", "decrypt", new PacketDecrypter(cipher));
+                        channel.pipeline().addBefore("prepender", "encrypt", new PacketEncrypter(cipher1));
+
+                        // Initialize
+                        listener.initUUID();
+                        new FireEventsThread(identifier, listener).start();
+                    } catch (@NotNull Throwable throwable) {
+                        Main.log.error("Cannot authenticate cracked player {}.", nickname);
+                        Main.log.atDebug().setCause(throwable).log();
+                    }
+
+                    return;
+                } catch (@NotNull AuthenticationUnavailableException e) {
+                    throw new RuntimeException("The authentication servers/methods are unavailable.", e);
+                } finally {
+                    identifier.flush();
                 }
-
-                // Check if the session was successful
-                @NotNull GameProfile approved = server.am().hasJoinedServer(new GameProfile(null, nickname), secret, address);
-
-                if (approved != null) try {
-                    identifier.setType(Type.PREMIUM);
-                    listener.a(begin);
-                } catch (@NotNull Throwable throwable) {
-                    Main.log.error("Cannot authenticate premium player {}.", nickname);
-                    Main.log.atDebug().setCause(throwable).log();
-                } else try {
-                    // Set type
-                    identifier.setType(Type.CRACKED);
-
-                    // Encryptor and Decryptor
-                    @NotNull SecretKey secretkey = begin.a(privatekey);
-                    @NotNull Cipher cipher = MinecraftEncryption.a(2, secretkey);
-                    @NotNull Cipher cipher1 = MinecraftEncryption.a(1, secretkey);
-                    channel.pipeline().addBefore("splitter", "decrypt", new PacketDecrypter(cipher));
-                    channel.pipeline().addBefore("prepender", "encrypt", new PacketEncrypter(cipher1));
-
-                    // Initialize
-                    listener.initUUID();
-                    new FireEventsThread(identifier, listener).start();
-                } catch (@NotNull Throwable throwable) {
-                    Main.log.error("Cannot authenticate cracked player {}.", nickname);
-                    Main.log.atDebug().setCause(throwable).log();
-                }
-
-                return;
-            } catch (@NotNull AuthenticationUnavailableException e) {
-                throw new RuntimeException("The authentication servers/methods are unavailable.", e);
-            } finally {
-                identifiers.remove(nicknames.get(channel));
-                nicknames.remove(channel);
             }
 
             super.channelRead(context, message);
@@ -259,6 +274,7 @@ final class Injection implements Flushable {
         public void write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws Exception {
             @NotNull Channel channel = context.channel();
 
+            System.out.println("Write: '" + message.getClass().getSimpleName() + "'");
             if (message instanceof PacketLoginOutEncryptionBegin begin) {
                 @NotNull Identifier identifier = identifiers.get(nicknames.get(channel));
 
@@ -273,7 +289,11 @@ final class Injection implements Flushable {
                     if (identifier.getType() == Type.CRACKED) {
                         try {
                             @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
-                            setStateEnum(listener, 2);
+                            @NotNull Field enumField = listener.getClass().getDeclaredField("h");
+                            enumField.setAccessible(true);
+
+                            @NotNull Enum<?> enumObject = (Enum<?>) Class.forName("net.minecraft.server.network.LoginListener$EnumProtocolState").getEnumConstants()[2];
+                            enumField.set(listener, enumObject);
 
                             listener.initUUID();
                             new FireEventsThread(identifier, listener).start();
@@ -284,8 +304,12 @@ final class Injection implements Flushable {
                         }
                     }
                 } finally {
-                    identifiers.remove(identifier.getName());
-                    nicknames.remove(channel);
+                    identifier.flush();
+                }
+            } else if (message instanceof PacketLoginOutSuccess) {
+                if (Arrays.stream(getConfiguration().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
+                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("Test"));
+                    return;
                 }
             }
 
@@ -310,8 +334,7 @@ final class Injection implements Flushable {
                     identifier.setReconnect(true);
                     identifier.pending = false;
 
-                    nicknames.remove(channel);
-                    identifiers.remove(nickname);
+                    identifier.flush();
 
                     // Set cracked
                     try {
@@ -336,6 +359,12 @@ final class Injection implements Flushable {
 
             super.channelInactive(context);
         }
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            cause.printStackTrace();
+            System.out.println("Caught exception!");
+        }
     }
 
     // Utilities
@@ -353,14 +382,6 @@ final class Injection implements Flushable {
         } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException e) {
             throw new RuntimeException("cannot get encryption bytes from login listener", e);
         }
-    }
-    private static void setStateEnum(@NotNull LoginListener listener, int index) throws IllegalAccessException, ClassNotFoundException, NoSuchFieldException {
-        @NotNull Field enumField = listener.getClass().getDeclaredField("h");
-        enumField.setAccessible(true);
-
-        @NotNull Enum<?> enumObject = (Enum<?>) Class.forName("net.minecraft.server.network.LoginListener$EnumProtocolState").getEnumConstants()[index];
-        System.out.println("Enum: '" + enumObject + "'");
-        enumField.set(listener, enumObject);
     }
 
 }

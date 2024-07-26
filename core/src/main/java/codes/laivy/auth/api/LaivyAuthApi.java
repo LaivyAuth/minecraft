@@ -12,9 +12,8 @@ public interface LaivyAuthApi extends Flushable {
 
     @NotNull Optional<Account> getAccount(@NotNull String nickname);
     @NotNull Optional<Account> getAccount(@NotNull UUID uuid);
+    @NotNull Account getOrCreate(@NotNull UUID uuid, @NotNull String nickname);
 
     @NotNull Account create(@NotNull UUID uuid, @NotNull String nickname) throws AccountExistsException;
-
-    @NotNull Account getOrCreate(@NotNull UUID uuid, @NotNull String nickname);
 
 }

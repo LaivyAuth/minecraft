@@ -22,7 +22,7 @@ public final class Main implements Mapping {
     private static @UnknownNullability Main instance;
 
     private static @NotNull String name() {
-        return "1.20.1 Mapping";
+        return "1.20.1";
     }
 
     // todo: module name at the logger name
