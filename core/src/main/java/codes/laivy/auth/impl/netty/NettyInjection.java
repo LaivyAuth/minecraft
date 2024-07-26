@@ -1,16 +1,15 @@
 package codes.laivy.auth.impl.netty;
 
 import codes.laivy.auth.impl.Mapping;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Flushable;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -23,6 +22,7 @@ import java.util.*;
  * <p>
  * This class is abstract because it contains two abstract methods for monitoring the sent and received packets.
  */
+// todo: channel close
 public abstract class NettyInjection implements Flushable {
 
     // Static initializers
@@ -59,13 +59,6 @@ public abstract class NettyInjection implements Flushable {
         return channel;
     }
 
-    /**
-     * Creates a new handler for a channel.
-     *
-     * @return the channel handler for the channel
-     */
-    protected abstract @NotNull ChannelHandler getHandler(@NotNull Channel channel);
-
     // Modules
 
     /**
@@ -73,10 +66,10 @@ public abstract class NettyInjection implements Flushable {
      *
      * @param channel the channel to be injected.
      */
-    public void inject(@NotNull Channel channel) {
-        synchronized (lock) {
-            @NotNull ChannelHandler handler = getHandler(channel);
+    public final void inject(@NotNull Channel channel) {
+        @NotNull ChannelDuplexHandler handler = new ChannelExecutorHandler();
 
+        synchronized (lock) {
             channel.pipeline().addBefore("packet_handler", "laivy_auth_" + channel.localAddress(), handler);
             handlers.put(channel, handler);
         }
@@ -87,12 +80,47 @@ public abstract class NettyInjection implements Flushable {
      *
      * @param channel the channel to be ejected.
      */
-    public void eject(@NotNull Channel channel) {
+    public final void eject(@NotNull Channel channel) {
         synchronized (lock) {
             @Nullable ChannelHandler handler = handlers.remove(channel);
             if (handler != null) channel.pipeline().remove(handler);
         }
     }
+
+    /**
+     * Reads the data received by the channel. Return null to cancel the reception of the packet
+     *
+     * @param context the channel handler context.
+     * @param message the received message.
+     * @return the processed message or null to cancel the reception.
+     */
+    protected abstract @UnknownNullability Object read(@NotNull ChannelHandlerContext context, @NotNull Object message) throws IOException;
+
+    /**
+     * Writes the data to be sent by the channel. Return null to cancel the sending of the packet.
+     *
+     * @param context the channel handler context.
+     * @param message the message to be sent.
+     * @param promise the channel promise.
+     * @return the processed message or null to cancel the sending.
+     */
+    protected abstract @UnknownNullability Object write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws IOException;
+
+    /**
+     * Called when a channel disconnects and finish close from the netty injector.
+     * This method is called after the {@link #eject(Channel)}.
+     *
+     * @param context the channel handler context.
+     */
+    protected abstract void close(@NotNull ChannelHandlerContext context) throws IOException;
+
+    /**
+     * Called when a channel exception occurs while processing a handler
+     *
+     * @param context the channel handler context.
+     * @param cause the cause of the exception.
+     */
+    protected abstract void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) throws IOException;
 
     // Loaders
 
@@ -101,7 +129,7 @@ public abstract class NettyInjection implements Flushable {
      */
     @Override
     @SuppressWarnings("WhileLoopReplaceableByForEach")
-    public void flush() {
+    public final void flush() {
         synchronized (lock) {
             @NotNull Iterator<Channel> iterator = handlers.keySet().iterator();
 
@@ -166,12 +194,44 @@ public abstract class NettyInjection implements Flushable {
                         @NotNull Channel channel = context.channel();
                         eject(channel);
 
+                        close(context);
+
                         super.channelInactive(context);
                     }
                 });
             }
 
             context.fireChannelRead(message);
+        }
+    }
+
+    /**
+     * A handler for executing read and write operations on the channel.
+     */
+    private final class ChannelExecutorHandler extends ChannelDuplexHandler {
+
+        // Object
+
+        private ChannelExecutorHandler() {
+        }
+
+        // Modules
+
+        @Override
+        public void channelRead(@NotNull ChannelHandlerContext context, @NotNull Object message) throws Exception {
+            message = NettyInjection.this.read(context, message);
+            if (message != null) super.channelRead(context, message);
+        }
+
+        @Override
+        public void write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws Exception {
+            message = NettyInjection.this.write(context, message, promise);
+            if (message != null) super.write(context, message, promise);
+        }
+
+        @Override
+        public void exceptionCaught(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) throws Exception {
+            exception(context, cause);
         }
     }
 
