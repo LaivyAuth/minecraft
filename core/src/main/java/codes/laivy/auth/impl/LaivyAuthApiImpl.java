@@ -3,7 +3,9 @@ package codes.laivy.auth.impl;
 import codes.laivy.auth.LaivyAuth;
 import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.config.Configuration;
-import codes.laivy.auth.utilities.AccountType;
+import codes.laivy.auth.core.Account;
+import codes.laivy.auth.exception.AccountExistsException;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -16,6 +18,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.JarFile;
@@ -31,8 +35,9 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
     private final @NotNull ReentrantLock lock = new ReentrantLock();
     private volatile boolean flushed = false;
 
-    // todo: persistent unloading
-    private final @NotNull Map<@NotNull UUID, AccountType> types = new HashMap<>();
+    private final @NotNull Map<UUID, Account> accounts = new HashMap<>();
+
+    private final boolean successful;
 
     private final @NotNull Configuration configuration;
     private final @NotNull Set<Mapping> mappings = new HashSet<>();
@@ -45,6 +50,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         this.configuration = Configuration.read(plugin.getConfig());
 
         // Load all mappings
+        boolean successful = false;
         @NotNull File file = new File(plugin.getDataFolder(), "/mappings/");
 
         @NotNull File @Nullable [] mappingFiles = file.listFiles();
@@ -59,10 +65,10 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
                 if (Mapping.class.isAssignableFrom(main)) {
                     //noinspection unchecked
-                    @NotNull Constructor<Mapping> constructor = ((Class<Mapping>) main).getDeclaredConstructor(ClassLoader.class, LaivyAuthApi.class);
+                    @NotNull Constructor<Mapping> constructor = ((Class<Mapping>) main).getDeclaredConstructor(ClassLoader.class, LaivyAuthApi.class, Configuration.class);
                     constructor.setAccessible(true);
 
-                    @NotNull Mapping mapping = constructor.newInstance(classLoader, this);
+                    @NotNull Mapping mapping = constructor.newInstance(classLoader, this, getConfiguration());
                     mappings.add(mapping);
                 } else {
                     log.error("The main class of mapping '{}' isn't an instance of '{}'.", mappingFile.getName(), Mapping.class);
@@ -72,7 +78,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
                 log.atDebug().setCause(e).log();
             }
         } catch (@NotNull NoSuchMethodException e) {
-            log.error("Cannot find a valid constructor of mapping '{}'. It should have a constructor with '{}' and '{}' parameters.", mappingFile.getName(), ClassLoader.class, LaivyAuthApi.class);
+            log.error("Cannot find a valid constructor of mapping '{}'. It should have a constructor with '{}', '{}' and '{}' parameters.", mappingFile.getName(), ClassLoader.class, LaivyAuthApi.class, Configuration.class);
             log.atDebug().setCause(e).log();
         } catch (@NotNull ClassNotFoundException e) {
             log.error("Cannot find main class of mapping '{}'. It should have the 'Main-Class' attribute at jar meta file.", mappingFile.getName());
@@ -89,9 +95,9 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         for (@NotNull Mapping mapping : mappings) if (mapping.isCompatible()) try {
             this.mapping = mapping;
             mapping.start();
+            successful = true;
 
             log.info("Successfully loaded mapping {}", mapping.getName());
-
             break;
         } catch (@NotNull Throwable e) {
             this.mapping = null; // Remove mapping reference, it's not compatible.
@@ -99,11 +105,87 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
             log.error("Cannot load mapping '{}': {}", mapping.getName(), e.getMessage());
             log.atDebug().setCause(e).log();
         }
+
+        // Check if there's a loaded module
+        if (mapping == null) {
+            log.error("There's no mapping available.");
+        }
+
+        this.successful = successful;
     }
 
     // Getters
 
     @Override
+    public @NotNull Optional<Account> getAccount(@NotNull String nickname) {
+        lock.lock();
+
+        try {
+            if (getConfiguration().isCaseSensitiveNicknames()) {
+                return accounts.values().stream().filter(account -> account.getName().equals(nickname)).findFirst();
+            } else {
+                return accounts.values().stream().filter(account -> account.getName().equalsIgnoreCase(nickname)).findFirst();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public @NotNull Optional<Account> getAccount(@NotNull UUID uuid) {
+        lock.lock();
+
+        try {
+            return Optional.ofNullable(accounts.getOrDefault(uuid, null));
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public @NotNull Account create(@NotNull UUID uuid, @NotNull String nickname) throws AccountExistsException {
+        lock.lock();
+
+        try {
+            // Checks
+            if (getAccount(uuid).isPresent()) {
+                throw new AccountExistsException("an account with the uuid '" + uuid + "' already exists.");
+            } else if (getAccount(nickname).isPresent()) {
+                throw new AccountExistsException("an account with the nickname '" + nickname + "' already exists.");
+            } else {
+                @Nullable Instant last = Bukkit.getPlayer(uuid) != null ? Instant.now() : null;
+                @NotNull Account account = new AccountImpl(this, nickname, uuid, null, null, false, null, last, Duration.ZERO);
+
+                accounts.put(uuid, account);
+                return account;
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public synchronized @NotNull Account getOrCreate(@NotNull UUID uuid, @NotNull String nickname) {
+        lock.lock();
+
+        try {
+            @Nullable Account byUuid = getAccount(uuid).orElse(null);
+            @Nullable Account byNickname = getAccount(nickname).orElse(null);
+
+            if (byUuid != byNickname) {
+                throw new IllegalStateException("there's multiples accounts with this uuid and nickname");
+            } else if (byUuid != null) {
+                return byUuid;
+            } else try {
+                return create(uuid, nickname);
+            } catch (@NotNull AccountExistsException e) {
+                throw new RuntimeException(e);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public @NotNull Configuration getConfiguration() {
         return configuration;
     }
@@ -122,42 +204,6 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         return mapping;
     }
 
-    @Override
-    public @Nullable AccountType getAccountType(@NotNull UUID uuid) {
-        synchronized (types) {
-            return types.getOrDefault(uuid, null);
-        }
-    }
-    @Override
-    public void setAccountType(@NotNull UUID uuid, @Nullable AccountType type) {
-        synchronized (types) {
-            if (type != null) types.put(uuid, type);
-            else types.remove(uuid);
-        }
-    }
-
-    @Override
-    public boolean isRegistered(@NotNull UUID uuid) {
-        if (flushed) {
-            throw new IllegalStateException("the implementation api is closed");
-        }
-
-        return false;
-    }
-    @Override
-    public boolean isAuthenticated(@NotNull UUID uuid) {
-        if (flushed) {
-            throw new IllegalStateException("the implementation api is closed");
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean isDebug() {
-        return getConfiguration().isDebug();
-    }
-
     // Loaders
 
     @Override
@@ -169,7 +215,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         flushed = true;
 
         try {
-            mapping.close();
+            if (mapping != null) mapping.close();
         } finally {
             mappings.clear();
             mapping = null;
