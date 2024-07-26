@@ -1,10 +1,14 @@
 package codes.laivy.auth.v1_20_R1.spigot;
 
+import codes.laivy.auth.LaivyAuth;
+import codes.laivy.auth.core.Account;
 import codes.laivy.auth.impl.netty.NettyInjection;
 import codes.laivy.auth.v1_20_R1.Main;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.exceptions.AuthenticationUnavailableException;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.PacketDecrypter;
 import net.minecraft.network.PacketEncrypter;
@@ -48,12 +52,7 @@ final class Injection implements Flushable {
     private final @NotNull NettyInjection netty;
 
     Injection(@NotNull Channel channel) {
-        this.netty = new NettyInjection(channel) {
-            @Override
-            protected @NotNull ChannelHandler getHandler(@NotNull Channel channel) {
-                return new Handler();
-            }
-        };
+        this.netty = new Handler(channel);
     }
 
     // Getters
@@ -186,9 +185,18 @@ final class Injection implements Flushable {
         }
     }
 
-    private final class Handler extends ChannelDuplexHandler {
+    private final class Handler extends NettyInjection {
+
+        // Object
+
+        private Handler(@NotNull Channel channel) {
+            super(channel);
+        }
+
+        // Modules
+
         @Override
-        public void channelRead(@NotNull ChannelHandlerContext context, @NotNull Object message) throws Exception {
+        protected @Nullable Object read(@NotNull ChannelHandlerContext context, @NotNull Object message) throws IOException {
             @NotNull Channel channel = context.channel();
 
             if (message instanceof PacketHandshakingInSetProtocol packet) {
@@ -258,7 +266,7 @@ final class Injection implements Flushable {
                         Main.log.atDebug().setCause(throwable).log();
                     }
 
-                    return;
+                    return null;
                 } catch (@NotNull AuthenticationUnavailableException e) {
                     throw new RuntimeException("The authentication servers/methods are unavailable.", e);
                 } finally {
@@ -266,16 +274,21 @@ final class Injection implements Flushable {
                 }
             }
 
-            super.channelRead(context, message);
+            return message;
         }
 
         @Override
-        public void write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws Exception {
+        protected @Nullable Object write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws IOException {
             @NotNull Channel channel = context.channel();
 
             if (message instanceof PacketLoginOutEncryptionBegin begin) {
                 @NotNull Identifier identifier = identifiers.get(nicknames.get(channel));
 
+                // Retrieve an account (If exists) and set the current type
+                @NotNull Optional<Account> optional = LaivyAuth.getApi().getAccount(identifier.getName());
+                optional.ifPresent(account -> identifier.type = account.getType());
+
+                // Continue authentication
                 if (identifier.getType() == null) {
                     if (identifier.isReconnect()) { // Tell the player to reconnect
                         identifier.setReconnect(false);
@@ -297,8 +310,9 @@ final class Injection implements Flushable {
                             listener.initUUID();
                             new FireEventsThread(identifier, listener).start();
 
-                            return;
-                        } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException | @NotNull ClassNotFoundException e) {
+                            return null;
+                        } catch (@NotNull
+                        NoSuchFieldException | @NotNull IllegalAccessException | @NotNull ClassNotFoundException e) {
                             throw new RuntimeException("cannot finish cracked user authentication", e);
                         }
                     }
@@ -309,21 +323,21 @@ final class Injection implements Flushable {
                 if (Arrays.stream(getConfiguration().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
                     // todo: message.yml
                     ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("Unsupported version!"));
-                    return;
+                    return null;
                 } else if ( !getConfiguration().isAllowCrackedUsers()) {
                     // todo: message.yml
                     ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("Cracked users don't allowed yet"));
-                    return;
+                    return null;
                 }
             }
 
-            super.write(context, message, promise);
+            return message;
         }
 
         @Override
-        public void channelInactive(@NotNull ChannelHandlerContext context) throws Exception {
-            @NotNull Channel channel = context.channel();
+        protected void close(@NotNull ChannelHandlerContext context) throws IOException {
 
+            @NotNull Channel channel = context.channel();
             @Nullable String nickname = nicknames.containsKey(channel) ? nicknames.get(channel) : null;
 
             if (nickname != null) {
@@ -350,18 +364,21 @@ final class Injection implements Flushable {
                         listener.initUUID();
 
                         // Get unique id
-                        @NotNull UUID uuid = (UUID) field.get(listener);
+                        @NotNull UUID uuid = ((GameProfile) field.get(listener)).getId();
 
                         // Set on account
                         getApi().getOrCreate(uuid, nickname).setType(Type.CRACKED);
-                    } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException e) {
-                        Main.log.error("Cannot mark player {} as cracked", nickname);
+                    } catch (@NotNull Throwable e) {
+                        Main.log.error("Cannot mark player {} as cracked: {}", nickname, e.getMessage());
                         Main.log.atDebug().setCause(e).log();
                     }
                 }
             }
+        }
 
-            super.channelInactive(context);
+        @Override
+        protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) throws IOException {
+            cause.printStackTrace();
         }
     }
 

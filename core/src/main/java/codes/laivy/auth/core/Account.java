@@ -1,7 +1,6 @@
 package codes.laivy.auth.core;
 
 import codes.laivy.address.Address;
-import codes.laivy.auth.utilities.ProtocolVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,11 +20,12 @@ public interface Account {
     @Nullable Type getType() throws UnsupportedOperationException;
     void setType(@Nullable Type type) throws UnsupportedOperationException;
 
-    @NotNull ProtocolVersion getVersion();
-    void setVersion(@NotNull ProtocolVersion version);
-
 //    @Nullable String getEmail();
 //    boolean isVerified();
+
+    default boolean isNew() {
+        return true; // todo: is new
+    }
 
     @NotNull Duration getPlayingTime();
     @Nullable Instant getRegistration();

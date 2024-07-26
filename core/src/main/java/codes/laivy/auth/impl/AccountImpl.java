@@ -24,7 +24,6 @@ final class AccountImpl implements Account {
 
     private char @Nullable [] password;
     private boolean authenticated;
-    private @Nullable Integer version;
 
     private @Nullable Instant registration;
 
@@ -41,7 +40,6 @@ final class AccountImpl implements Account {
         this.type = type;
         this.password = password;
         this.authenticated = authenticated;
-        this.version = version;
         this.registration = registration;
         this.lastPlayingTimeCheck = lastPlayingTimeCheck;
         this.playingTime = playingTime;
@@ -94,12 +92,8 @@ final class AccountImpl implements Account {
     }
 
     @Override
-    public @Nullable Integer getVersion() {
-        return version;
-    }
-    @Override
-    public void setVersion(int version) {
-        this.version = version;
+    public boolean isNew() {
+        return true;
     }
 
     @Override
