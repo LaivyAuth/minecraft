@@ -23,6 +23,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>codes.laivy</groupId>
+            <artifactId>java-address</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.8-R0.1-SNAPSHOT</version>

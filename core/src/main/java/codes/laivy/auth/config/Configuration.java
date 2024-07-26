@@ -3,11 +3,8 @@ package codes.laivy.auth.config;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Objects;
 
 // todo: Custom "Failed to verify username" message
 // todo: Remove "UUID of player" message
@@ -21,8 +18,10 @@ public interface Configuration {
         boolean autoUpdate = yaml.getBoolean("updates.auto", true);
         boolean allowCrackedUsers = yaml.getBoolean("whitelist.allow-cracked-users", true);
         boolean automaticAuthentication = yaml.getBoolean("premium-automatic-auth.enabled", true);
+        boolean caseSensitiveNicknames = yaml.getBoolean("case-sensitive-nicknames", true);
         int[] blockedVersions = ArrayUtils.toPrimitive(yaml.getIntegerList("whitelist.block-protocol-versions").toArray(new Integer[0]));
 
+        // todo: implementations
         return new Configuration() {
 
             // Getters
@@ -52,34 +51,13 @@ public interface Configuration {
             }
 
             @Override
+            public boolean isCaseSensitiveNicknames() {
+                return caseSensitiveNicknames;
+            }
+
+            @Override
             public int @NotNull [] getBlockedVersions() {
                 return blockedVersions;
-            }
-
-            // Implementations
-
-            @Override
-            public boolean equals(@Nullable Object object) {
-                if (this == object) return true;
-                if (!(object instanceof Configuration)) return false;
-                @NotNull Configuration that = (Configuration) object;
-                return isDebug() == that.isDebug() && isAutoUpdate() == that.isAutoUpdate() && isAllowCrackedUsers() == that.isAllowCrackedUsers() && isAutomaticAuthentication() == that.isAutomaticAuthentication() && Objects.equals(getCheckUpdatesInterval(), that.getCheckUpdatesInterval()) && Arrays.equals(getBlockedVersions(), that.getBlockedVersions());
-            }
-            @Override
-            public int hashCode() {
-                return Objects.hash(isDebug(), getCheckUpdatesInterval(), isAutoUpdate(), isAllowCrackedUsers(), isAutomaticAuthentication(), Arrays.hashCode(getBlockedVersions()));
-            }
-
-            @Override
-            public @NotNull String toString() {
-                return "Configuration{" +
-                        "debug=" + isDebug() +
-                        ", checkUpdatesInterval=" + getCheckUpdatesInterval() +
-                        ", autoUpdate=" + isAutoUpdate() +
-                        ", allowCrackedUsers=" + isAllowCrackedUsers() +
-                        ", automaticAuthentication=" + isAutomaticAuthentication() +
-                        ", blockedVersions=" + Arrays.toString(getBlockedVersions()) +
-                        '}';
             }
 
         };
@@ -94,6 +72,7 @@ public interface Configuration {
 
     boolean isAllowCrackedUsers();
     boolean isAutomaticAuthentication();
+    boolean isCaseSensitiveNicknames();
 
     int @NotNull [] getBlockedVersions();
 

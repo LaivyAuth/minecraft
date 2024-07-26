@@ -14,6 +14,20 @@
 # be useful for developers to see exactly what's happening at the plugin.
 debug: false
 
+# When this option is enabled, nicknames with the same characters but differing
+# in case (uppercase or lowercase) will be considered identical.
+# For example, if there is an account created with the nickname "Laivy",
+# attempting to connect with the nickname "laivy" will prevent the user from
+# proceeding with authentication.
+#
+# The native notchian (vanilla) minecraft servers allow this as default.
+# Keeping this as true if strongly recommended, it avoids a lot of issues.
+case-sensitive-nicknames: true
+
+# Stops the server if an error occurs while loading the plugin
+# You don't want your server running without the authentication system, trust me.
+stop-server-if-fails: true
+
 updates:
   # Sets the time in minutes that the plugin should check for new mappings and plugin updates.
   # Leave it "-1" if you want to disable the update checks
@@ -41,6 +55,8 @@ whitelist:
   # Useful when you need to block cracked users temporarily or just want to use
   # our amazing and wonderful authentication plugin without necessarily having cracked users.
   # For api purposes as example.
+  #
+  # To use this feature, the 'premium-automatic-auth' must be enabled.
   allow-cracked-users: true
 
   # Here you can block some protocol versions to join the server.
@@ -49,9 +65,11 @@ whitelist:
   block-protocol-versions:
   #  - 767 # This blocks the 1.21
   #  - 766 # This blocks the 1.20.6 and 1.20.5
-  
+
+captcha:
+
 email:
-  # Defines if the players should be forced to enter an e-mail to authenticate
-  # You should consider change this option to 'true', it's safer, and you'll have
+  # Defines if the players should be forced to enter an e-mail to authenticate,
+  # you should consider change this option to 'true', it's safer, and you'll have
   # a lead to announce your marketing offers :)
   required: false
