@@ -295,7 +295,7 @@ final class Injection implements Flushable {
                         identifier.pending = false;
 
                         // todo: message.yml
-                        message = new PacketLoginOutDisconnect(IChatBaseComponent.a("§aAccount Verified\n§aPlease reconnect again\n\n§cIf you get kicked again due to §4Failed to log in: ... (Try restarting your game) §creconnect once more, it's normal!"));
+                        message = new PacketLoginOutDisconnect(IChatBaseComponent.a("§fʟᴀɪᴠʏ §6ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ§r\n\n§7Account Verified Successfuly\n§7Please reconnect again at the server...\n\n§8You may get kicked due \"§cFailed to log in: ...§8\", reconnect once more, it's normal!"));
                     }
                 } else try {
                     if (identifier.getType() == Type.CRACKED) {
@@ -322,11 +322,11 @@ final class Injection implements Flushable {
             } else if (message instanceof PacketLoginOutSuccess) {
                 if (Arrays.stream(getConfiguration().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
                     // todo: message.yml
-                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("Unsupported version!"));
+                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("§fʟᴀɪᴠʏ §6ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ\n\n§cYou're trying to connect with an incompatible version!"));
                     return null;
                 } else if ( !getConfiguration().isAllowCrackedUsers()) {
                     // todo: message.yml
-                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("Cracked users don't allowed yet"));
+                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("§fʟᴀɪᴠʏ §6ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ\n\n§cThis server does only accepts "));
                     return null;
                 }
             }
