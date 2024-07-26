@@ -1,25 +1,20 @@
 package codes.laivy.auth.api;
 
-import codes.laivy.auth.config.Configuration;
-import codes.laivy.auth.utilities.AccountType;
+import codes.laivy.auth.core.Account;
+import codes.laivy.auth.exception.AccountExistsException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.Flushable;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface LaivyAuthApi extends Flushable {
 
-    @Nullable AccountType getAccountType(@NotNull UUID uuid);
-    void setAccountType(@NotNull UUID uuid, @Nullable AccountType type);
+    @NotNull Optional<Account> getAccount(@NotNull String nickname);
+    @NotNull Optional<Account> getAccount(@NotNull UUID uuid);
 
-    boolean isRegistered(@NotNull UUID uuid);
-    boolean isAuthenticated(@NotNull UUID uuid);
+    @NotNull Account create(@NotNull UUID uuid, @NotNull String nickname) throws AccountExistsException;
 
-    @NotNull Configuration getConfiguration();
-
-    default boolean isDebug() {
-        return getConfiguration().isDebug();
-    }
+    @NotNull Account getOrCreate(@NotNull UUID uuid, @NotNull String nickname);
 
 }
