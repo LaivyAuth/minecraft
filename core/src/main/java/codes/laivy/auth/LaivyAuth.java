@@ -1,6 +1,9 @@
 package codes.laivy.auth;
 
 import codes.laivy.auth.api.LaivyAuthApi;
+import codes.laivy.auth.impl.AuthenticationCommands;
+import codes.laivy.auth.impl.SpigotListener;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -51,6 +54,12 @@ public final class LaivyAuth extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // Register commands
+        @NotNull AuthenticationCommands commands = new AuthenticationCommands(api);
+        getCommand("login").setExecutor(commands);
+        getCommand("register").setExecutor(commands);
+
+        Bukkit.getPluginManager().registerEvents(new SpigotListener(), this);
     }
     @Override
     public void onDisable() {

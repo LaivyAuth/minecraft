@@ -7,3 +7,10 @@ api-version: 1.13
 
 softdepend:
   - Metadotis
+
+commands:
+  login:
+    description: "The main authentication command"
+    aliases: "authenticate"
+  register:
+    description: "The main registering command"
