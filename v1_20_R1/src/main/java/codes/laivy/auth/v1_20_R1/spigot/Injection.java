@@ -1,6 +1,5 @@
 package codes.laivy.auth.v1_20_R1.spigot;
 
-import codes.laivy.auth.LaivyAuth;
 import codes.laivy.auth.core.Account;
 import codes.laivy.auth.impl.netty.NettyInjection;
 import codes.laivy.auth.v1_20_R1.Main;
@@ -24,6 +23,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -90,7 +90,7 @@ final class Injection implements Flushable {
         private final @NotNull Channel channel;
 
         private final @NotNull String name;
-        private @Nullable UUID uuid;
+        private @UnknownNullability UUID uuid;
         private @Nullable Type type;
         
         private boolean reconnect = true;
@@ -169,11 +169,7 @@ final class Injection implements Flushable {
         public void run() {
             try {
                 // Save all the things into the api
-                @NotNull Field field = listener.getClass().getDeclaredField("j");
-                field.setAccessible(true);
-
-                @NotNull GameProfile profile = (GameProfile) field.get(listener);
-                getApi().getOrCreate(profile.getId(), profile.getName()).setType(identifier.getType());
+                getApi().getOrCreate(identifier.uuid, identifier.name).setType(identifier.getType());
 
                 // Finish firing all events
                 (listener.new LoginHandler()).fireEvents();
@@ -240,16 +236,20 @@ final class Injection implements Flushable {
 
                     // Check if the session was successful
                     @NotNull GameProfile approved = server.am().hasJoinedServer(new GameProfile(null, nickname), secret, address);
-
                     if (approved != null) try {
-                        identifier.setType(Type.PREMIUM);
+                        identifier.type = Type.PREMIUM;
+                        identifier.uuid = approved.getId();
+
                         listener.a(begin);
                     } catch (@NotNull Throwable throwable) {
                         Main.log.error("Cannot authenticate premium player {}.", nickname);
                         Main.log.atDebug().setCause(throwable).log();
                     } else try {
-                        // Set type
-                        identifier.setType(Type.CRACKED);
+                        // Initialize
+                        listener.initUUID();
+
+                        identifier.uuid = getListenerProfile(listener).getId();
+                        identifier.type = Type.CRACKED;
 
                         // Encryptor and Decryptor
                         @NotNull SecretKey secretkey = begin.a(privatekey);
@@ -258,8 +258,6 @@ final class Injection implements Flushable {
                         channel.pipeline().addBefore("splitter", "decrypt", new PacketDecrypter(cipher));
                         channel.pipeline().addBefore("prepender", "encrypt", new PacketEncrypter(cipher1));
 
-                        // Initialize
-                        listener.initUUID();
                         new FireEventsThread(identifier, listener).start();
                     } catch (@NotNull Throwable throwable) {
                         Main.log.error("Cannot authenticate cracked player {}.", nickname);
@@ -269,8 +267,6 @@ final class Injection implements Flushable {
                     return null;
                 } catch (@NotNull AuthenticationUnavailableException e) {
                     throw new RuntimeException("The authentication servers/methods are unavailable.", e);
-                } finally {
-                    identifier.flush();
                 }
             }
 
@@ -285,7 +281,7 @@ final class Injection implements Flushable {
                 @NotNull Identifier identifier = identifiers.get(nicknames.get(channel));
 
                 // Retrieve an account (If exists) and set the current type
-                @NotNull Optional<Account> optional = LaivyAuth.getApi().getAccount(identifier.getName());
+                @NotNull Optional<Account> optional = getApi().getAccount(identifier.getName());
                 optional.ifPresent(account -> identifier.type = account.getType());
 
                 // Continue authentication
@@ -297,7 +293,7 @@ final class Injection implements Flushable {
                         // todo: message.yml
                         message = new PacketLoginOutDisconnect(IChatBaseComponent.a("§fʟᴀɪᴠʏ §6ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ§r\n\n§7Account Verified Successfuly\n§7Please reconnect again at the server...\n\n§8You may get kicked due \"§cFailed to log in: ...§8\", reconnect once more, it's normal!"));
                     }
-                } else try {
+                } else {
                     if (identifier.getType() == Type.CRACKED) {
                         try {
                             @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
@@ -316,8 +312,6 @@ final class Injection implements Flushable {
                             throw new RuntimeException("cannot finish cracked user authentication", e);
                         }
                     }
-                } finally {
-                    identifier.flush();
                 }
             } else if (message instanceof PacketLoginOutSuccess) {
                 if (Arrays.stream(getConfiguration().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
@@ -328,6 +322,15 @@ final class Injection implements Flushable {
                     // todo: message.yml
                     ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("§fʟᴀɪᴠʏ §6ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ\n\n§cThis server does only accepts "));
                     return null;
+                } else {
+                    @NotNull Identifier identifier = identifiers.get(nicknames.get(channel));
+
+                    try {
+                        @NotNull Account account = getApi().getOrCreate(identifier.uuid, identifier.getName());
+                        account.setType(identifier.getType());
+                    } finally {
+                        identifier.flush();
+                    }
                 }
             }
 
@@ -357,14 +360,11 @@ final class Injection implements Flushable {
                     // Set cracked
                     try {
                         // Get essential fields
-                        @NotNull Field field = LoginListener.class.getDeclaredField("j");
-                        field.setAccessible(true);
-
                         @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
                         listener.initUUID();
 
                         // Get unique id
-                        @NotNull UUID uuid = ((GameProfile) field.get(listener)).getId();
+                        @NotNull UUID uuid = getListenerProfile(listener).getId();
 
                         // Set on account
                         getApi().getOrCreate(uuid, nickname).setType(Type.CRACKED);
@@ -384,6 +384,12 @@ final class Injection implements Flushable {
 
     // Utilities
 
+    private static @NotNull GameProfile getListenerProfile(@NotNull LoginListener listener) throws NoSuchFieldException, IllegalAccessException {
+        @NotNull Field field = LoginListener.class.getDeclaredField("j");
+        field.setAccessible(true);
+
+        return ((GameProfile) field.get(listener));
+    }
     private static @NotNull NetworkManager getNetworkManager(@NotNull Channel channel) {
         @NotNull ServerConnection connection = Objects.requireNonNull(((CraftServer) Bukkit.getServer()).getServer().ad(), "cannot retrieve server connection");
         return connection.e().stream().filter(network -> network.m.compareTo(channel) == 0).findFirst().orElseThrow(() -> new NullPointerException("Cannot retrieve network manager"));

@@ -16,17 +16,32 @@ debug: false
 
 # When this option is enabled, nicknames with the same characters but differing
 # in case (uppercase or lowercase) will be considered identical.
-# For example, if there is an account created with the nickname "Laivy",
-# attempting to connect with the nickname "laivy" will prevent the user from
-# proceeding with authentication.
 #
-# The native notchian (vanilla) minecraft servers allow this as default.
-# Keeping this as true if strongly recommended, it avoids a lot of issues.
+# For example, if there is an account created with the nickname "Laivy"
+# attempting to connect with the nickname "laivy":
+# The plugin will prevent the user from proceeding with connection and authentication,
+# ordering the player to change the nickname to "Laivy" again.
+#
+# The native notchian (vanilla) minecraft servers disable this as default.
+# Keeping this as true if strongly recommended then, it avoids a lot of issues.
+#
+# If you want to change this, it's strongly recommended to reset the plugin's database and
+# all the server's player list first, to avoid players losing their accounts.
 case-sensitive-nicknames: true
 
-# Stops the server if an error occurs while loading the plugin
+# Stops the server if an error occurs while loading the plugin.
 # You don't want your server running without the authentication system, trust me.
 stop-server-if-fails: true
+
+# This option stores all the database into the RAM on load-up the server.
+# It's not recommended for servers with a high number of players (like +300K).
+# When false, this option takes more take to authenticate the users and retrieve
+# some other information because it will need to load it from the disk first.
+buffered-database: true
+
+unauthenticated:
+  movement: false
+  visible: true
 
 updates:
   # Sets the time in minutes that the plugin should check for new mappings and plugin updates.
@@ -48,6 +63,7 @@ premium-automatic-auth:
   #    - If the verification process is successful, the player is considered a premium user and will not need to enter a password for future logins, provided they use a premium account.
   # Note this feature will make the server online-mode=true, but cracked users still can join.
   enabled: true
+  premium_requires_login_temp: true # This is just for debug and will be replaced later!
 
 whitelist:
   # If false, cracked users (those who are using unauthorized copies of the game) will not be able to join the server.
