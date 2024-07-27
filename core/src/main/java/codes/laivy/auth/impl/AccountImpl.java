@@ -3,6 +3,8 @@ package codes.laivy.auth.impl;
 import codes.laivy.address.Address;
 import codes.laivy.auth.core.Account;
 import codes.laivy.auth.core.Activity;
+import com.google.gson.JsonObject;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,6 +22,7 @@ final class AccountImpl implements Account {
 
     private final @NotNull String name;
     private final @NotNull UUID uuid;
+    private final boolean isNew;
     private @Nullable Type type;
 
     private char @Nullable [] password;
@@ -33,15 +36,16 @@ final class AccountImpl implements Account {
 
     // Constructor
 
-    AccountImpl(@NotNull LaivyAuthApiImpl api, @NotNull String name, @NotNull UUID uuid, @Nullable Type type, char @Nullable [] password, boolean authenticated, @Nullable Integer version, @Nullable Instant registration, @Nullable Instant lastPlayingTimeCheck, @NotNull Duration playingTime) {
+    AccountImpl(@NotNull LaivyAuthApiImpl api, @NotNull String name, @NotNull UUID uuid, boolean isNew, @Nullable Type type, char @Nullable [] password, boolean authenticated, @Nullable Integer version, @Nullable Instant registration, @NotNull Duration playingTime) {
         this.api = api;
         this.name = name;
         this.uuid = uuid;
+        this.isNew = isNew;
         this.type = type;
         this.password = password;
         this.authenticated = authenticated;
         this.registration = registration;
-        this.lastPlayingTimeCheck = lastPlayingTimeCheck;
+        this.lastPlayingTimeCheck = Bukkit.getPlayer(uuid) != null ? Instant.now() : null;
         this.playingTime = playingTime;
     }
 
@@ -93,7 +97,7 @@ final class AccountImpl implements Account {
 
     @Override
     public boolean isNew() {
-        return true;
+        return isNew;
     }
 
     @Override
@@ -136,6 +140,40 @@ final class AccountImpl implements Account {
         if (lastPlayingTimeCheck != null) {
             playingTime = playingTime.plus(Duration.between(Instant.now(), lastPlayingTimeCheck));
         }
+    }
+
+    // Serializers
+
+    public @NotNull JsonObject serialize() {
+        @NotNull JsonObject object = new JsonObject();
+
+        // todo: Activity and addresses
+        // todo: account version
+
+        object.addProperty("name", getName());
+        object.addProperty("uuid", getUniqueId().toString());
+        object.addProperty("playing_time_millis", getPlayingTime().getSeconds());
+
+        if (getType() != null) {
+            object.addProperty("type", getType().name().toLowerCase());
+        } if (getPassword() != null) {
+            object.addProperty("password", new String(getPassword()));
+        } if (getRegistration() != null) {
+            object.addProperty("registration_time_millis", getRegistration().toEpochMilli());
+        }
+
+        return object;
+    }
+    public static @NotNull AccountImpl deserialize(@NotNull LaivyAuthApiImpl api, @NotNull JsonObject object) {
+        @NotNull String name = object.get("name").getAsString();
+        @NotNull UUID uuid = UUID.fromString(object.get("uuid").getAsString());
+        @NotNull Duration playingTime = Duration.ofMillis(object.get("playing_time_millis").getAsLong());
+
+        @Nullable Type type = object.has("type") ? Type.valueOf(object.get("type").getAsString().toUpperCase()) : null;
+        char @Nullable [] password = object.has("password") ? object.get("password").getAsString().toCharArray() : null;
+        @Nullable Instant registration = object.has("registration_time_millis") ? Instant.parse(object.get("registration_time_millis").getAsString()) : null;
+
+        return new AccountImpl(api, name, uuid, false, type, password, false, 1, registration, playingTime);
     }
 
     // Implementations
