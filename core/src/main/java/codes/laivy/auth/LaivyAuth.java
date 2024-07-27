@@ -64,10 +64,10 @@ public final class LaivyAuth extends JavaPlugin {
     @Override
     public void onDisable() {
         try {
-            // Flush the current api
-            getApi().flush();
+            // Close the current api
+            getApi().close();
         } catch (@NotNull Throwable e) {
-            log.error("Cannot unload the api", e);
+            log.error("Cannot close the api", e);
         }
     }
 

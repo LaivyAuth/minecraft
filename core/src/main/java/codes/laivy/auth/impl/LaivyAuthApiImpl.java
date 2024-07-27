@@ -5,21 +5,22 @@ import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.core.Account;
 import codes.laivy.auth.exception.AccountExistsException;
-import org.bukkit.Bukkit;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.JarFile;
@@ -33,9 +34,9 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
     // Object
 
     private final @NotNull ReentrantLock lock = new ReentrantLock();
-    private volatile boolean flushed = false;
+    private volatile boolean closed = false;
 
-    private final @NotNull Map<UUID, Account> accounts = new HashMap<>();
+    private final @NotNull Map<UUID, AccountImpl> accounts = new HashMap<>();
 
     private final boolean successful;
 
@@ -49,9 +50,30 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         this.plugin = plugin;
         this.configuration = Configuration.read(plugin.getConfig());
 
+        // Load all accounts
+        @NotNull File database = new File(getPlugin().getDataFolder(), "/database/");
+        if (!database.exists() && !database.mkdirs()) {
+            throw new IllegalStateException("cannot create database file");
+        } else {
+            @NotNull File @Nullable [] files = database.listFiles();
+            accounts.clear();
+
+            if (files != null) for (@NotNull File file : files) {
+                try (@NotNull FileInputStream stream = new FileInputStream(file)) {
+                    @NotNull JsonObject object = new JsonParser().parse(new InputStreamReader(stream)).getAsJsonObject();
+                    @NotNull AccountImpl account = AccountImpl.deserialize(this, object);
+
+                    accounts.put(account.getUniqueId(), account);
+                } catch (@NotNull Throwable throwable) {
+                    log.error("Cannot load account '{}' from database: {}", file.getName(), throwable.getMessage());
+                    log.atDebug().setCause(throwable).log();
+                }
+            }
+        }
+
         // Load all mappings
         boolean successful = false;
-        @NotNull File file = new File(plugin.getDataFolder(), "/mappings/");
+        @NotNull File file = new File(getPlugin().getDataFolder(), "/mappings/");
 
         @NotNull File @Nullable [] mappingFiles = file.listFiles();
         if (mappingFiles != null) for (@NotNull File mappingFile : mappingFiles) try {
@@ -122,9 +144,9 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
         try {
             if (getConfiguration().isCaseSensitiveNicknames()) {
-                return accounts.values().stream().filter(account -> account.getName().equals(nickname)).findFirst();
+                return accounts.values().stream().filter(account -> account.getName().equals(nickname)).map(account -> (Account) account).findFirst();
             } else {
-                return accounts.values().stream().filter(account -> account.getName().equalsIgnoreCase(nickname)).findFirst();
+                return accounts.values().stream().filter(account -> account.getName().equalsIgnoreCase(nickname)).map(account -> (Account) account).findFirst();
             }
         } finally {
             lock.unlock();
@@ -153,8 +175,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
             } else if (getAccount(nickname).isPresent()) {
                 throw new AccountExistsException("an account with the nickname '" + nickname + "' already exists.");
             } else {
-                @Nullable Instant last = Bukkit.getPlayer(uuid) != null ? Instant.now() : null;
-                @NotNull Account account = new AccountImpl(this, nickname, uuid, null, null, false, null, null, last, Duration.ZERO);
+                @NotNull AccountImpl account = new AccountImpl(this, nickname, uuid, true, null, null, false, null, null, Duration.ZERO);
 
                 accounts.put(uuid, account);
                 return account;
@@ -196,7 +217,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
     }
 
     public @NotNull Mapping getMapping() {
-        if (flushed) {
+        if (closed) {
             throw new IllegalStateException("the implementation api is closed");
         } else if (mapping == null) {
             throw new NullPointerException("there's no compatible LaivyAuth module available");
@@ -208,14 +229,34 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
     // Loaders
 
     @Override
-    public void flush() throws IOException {
-        if (flushed) {
-            throw new IOException("the implementation api already is flushed");
+    public void close() throws IOException {
+        if (closed) {
+            throw new IOException("the implementation api already is closed");
         }
 
-        flushed = true;
+        closed = true;
 
         try {
+            @NotNull Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+            for (@NotNull AccountImpl account : accounts.values()) try {
+                // Get file
+                @NotNull File file = new File(getPlugin().getDataFolder(), "/database/" + account.getUniqueId() + ".json");
+                if (!file.exists() && !file.getParentFile().mkdirs() & !file.createNewFile()) {
+                    throw new IllegalStateException("cannot create account '" + account.getName() + "' database file");
+                }
+
+                // Write data
+                @NotNull JsonObject object = account.serialize();
+
+                try (@NotNull FileWriter writer = new FileWriter(file)) {
+                    writer.write(gson.toJson(object));
+                }
+            } catch (@NotNull Throwable throwable) {
+                log.error("Cannot unload account '{}' into database: {}", account.getName(), throwable.getMessage());
+                log.atDebug().setCause(throwable).log();
+            }
+
             if (mapping != null) mapping.close();
         } finally {
             mappings.clear();
