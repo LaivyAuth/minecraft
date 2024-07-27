@@ -128,13 +128,13 @@ public abstract class NettyInjection implements Flushable {
      * Flushes the handlers, removing all injected channels and their handlers.
      */
     @Override
-    @SuppressWarnings("WhileLoopReplaceableByForEach")
     public final void flush() {
         synchronized (lock) {
             @NotNull Iterator<Channel> iterator = handlers.keySet().iterator();
 
             while (iterator.hasNext()) {
                 @NotNull Channel channel = iterator.next();
+                iterator.remove();
 
                 try {
                     @Nullable ChannelHandler handler = handlers.remove(channel);

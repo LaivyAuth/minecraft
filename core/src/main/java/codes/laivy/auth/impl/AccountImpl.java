@@ -70,10 +70,6 @@ final class AccountImpl implements Account {
     }
     @Override
     public void setPassword(char @Nullable [] password) {
-        if (this.password == null) {
-            return;
-        }
-
         this.registration = password != null ? Instant.now() : null;
         this.password = password;
     }
@@ -179,10 +175,10 @@ final class AccountImpl implements Account {
     // Implementations
 
     @Override
-    public boolean equals(@Nullable Object object) {
-        if (this == object) return true;
-        if (!(object instanceof AccountImpl)) return false;
-        @NotNull AccountImpl account = (AccountImpl) object;
+    public boolean equals(@Nullable Object message) {
+        if (this == message) return true;
+        if (!(message instanceof AccountImpl)) return false;
+        @NotNull AccountImpl account = (AccountImpl) message;
         return Objects.equals(api, account.api) && Objects.equals(uuid, account.uuid);
     }
     @Override

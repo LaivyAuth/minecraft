@@ -6,7 +6,6 @@ import codes.laivy.auth.exception.AccountExistsException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
-import java.io.Flushable;
 import java.util.Optional;
 import java.util.UUID;
 

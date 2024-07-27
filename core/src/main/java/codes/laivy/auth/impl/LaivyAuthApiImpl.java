@@ -176,8 +176,10 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
                 throw new AccountExistsException("an account with the nickname '" + nickname + "' already exists.");
             } else {
                 @NotNull AccountImpl account = new AccountImpl(this, nickname, uuid, true, null, null, false, null, null, Duration.ZERO);
-
                 accounts.put(uuid, account);
+
+                System.out.println("Created!");
+
                 return account;
             }
         } finally {
@@ -193,14 +195,16 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
             @Nullable Account byUuid = getAccount(uuid).orElse(null);
             @Nullable Account byNickname = getAccount(nickname).orElse(null);
 
-            if (byUuid != byNickname) {
+            if (byUuid != null && byNickname != null && !Objects.equals(byUuid, byNickname)) {
                 throw new IllegalStateException("there's multiples accounts with this uuid and nickname");
             } else if (byUuid != null) {
                 return byUuid;
+            } else if (byNickname != null) {
+                return byNickname;
             } else try {
                 return create(uuid, nickname);
             } catch (@NotNull AccountExistsException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("this exception wasn't supposed to happen.", e);
             }
         } finally {
             lock.unlock();
