@@ -89,3 +89,8 @@ email:
   # you should consider change this option to 'true', it's safer, and you'll have
   # a lead to announce your marketing offers :)
   required: false
+
+oraxen:
+  # This configuration will make Oraxen only send the texture to the player after
+  # authentication
+  sends-pack-only-when-auth: true

@@ -31,7 +31,7 @@ final class AccountImpl implements Account {
     private @Nullable Instant registration;
 
     // Playing time
-    private @Nullable Instant lastPlayingTimeCheck = null;
+    private @Nullable Instant lastPlayingTimeCheck;
     private @NotNull Duration playingTime;
 
     // Constructor
@@ -135,6 +135,7 @@ final class AccountImpl implements Account {
     void ping() {
         if (lastPlayingTimeCheck != null) {
             playingTime = playingTime.plus(Duration.between(Instant.now(), lastPlayingTimeCheck));
+            lastPlayingTimeCheck = Instant.now();
         }
     }
 

@@ -2,8 +2,6 @@ package codes.laivy.auth.core;
 
 import codes.laivy.address.Address;
 import codes.laivy.auth.LaivyAuth;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,11 +22,6 @@ public interface Account {
         return LaivyAuth.getApi().getAccount(name);
     }
 
-    @ApiStatus.Experimental
-    static @NotNull Account get(@NotNull Player player) {
-        return LaivyAuth.getApi().getAccount(player.getUniqueId()).orElseThrow(() -> new NullPointerException("cannot retrieve account of player '" + player.getName() + "'"));
-    }
-
     // Object
 
     @NotNull String getName();
@@ -43,9 +36,7 @@ public interface Account {
 //    @Nullable String getEmail();
 //    boolean isVerified();
 
-    default boolean isNew() {
-        return true; // todo: is new
-    }
+    boolean isNew();
 
     @NotNull Duration getPlayingTime();
     @Nullable Instant getRegistration();
@@ -55,6 +46,15 @@ public interface Account {
 
     default boolean isRegistered() {
         return getPassword() != null;
+    }
+
+    default @NotNull Address getAddress() {
+        @NotNull Address[] addresses = getAddresses();
+        return addresses[addresses.length - 1];
+    }
+    default @NotNull Activity getLastActivity() {
+        @NotNull Activity[] activities = getActivities();
+        return activities[activities.length - 1];
     }
 
     @NotNull Address @NotNull [] getAddresses();

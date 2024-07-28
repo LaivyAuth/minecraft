@@ -25,14 +25,14 @@ public final class SpigotListener implements Listener {
     // Static initializers
 
     public static boolean isLogged(@NotNull Player player) {
-        return Account.get(player).isAuthenticated();
+        return Account.get(player.getUniqueId()).orElseThrow(() -> new NullPointerException("cannot find the account for player '" + player.getName() + "'")).isAuthenticated();
     }
 
     // Object
 
     @EventHandler(priority = EventPriority.LOW)
     private void quit(@NotNull PlayerQuitEvent e) {
-        @NotNull Account data = Account.get(e.getPlayer());
+        @NotNull Account data = Account.get(e.getPlayer().getUniqueId()).orElseThrow(() -> new NullPointerException("cannot find the account for player '" + e.getPlayer().getName() + "'"));
         data.setAuthenticated(false);
 
         Bukkit.getConsoleSender().sendMessage("§8(§c-§8) Player §7" + e.getPlayer().getName() + "§8 left the server");
@@ -42,7 +42,7 @@ public final class SpigotListener implements Listener {
     }
     @EventHandler(priority = EventPriority.LOW)
     private void join(@NotNull PlayerJoinEvent e) {
-        @NotNull Account data = Account.get(e.getPlayer());
+        @NotNull Account data = Account.get(e.getPlayer().getUniqueId()).orElseThrow(() -> new NullPointerException("cannot find the account for player '" + e.getPlayer().getName() + "'"));
 
         if (data.getType() == Account.Type.PREMIUM) {
             data.setAuthenticated(true); // Automatic authenticate premium users
