@@ -3,6 +3,10 @@ package codes.laivy.auth.impl;
 import codes.laivy.address.Address;
 import codes.laivy.auth.core.Account;
 import codes.laivy.auth.core.Activity;
+import codes.laivy.auth.event.PlayerAuthenticateEvent;
+import codes.laivy.auth.event.PlayerPasswordChangeEvent;
+import codes.laivy.auth.event.PlayerUnauthenticateEvent;
+import codes.laivy.auth.event.PlayerUnregisterEvent;
 import com.google.gson.JsonObject;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +74,17 @@ final class AccountImpl implements Account {
     }
     @Override
     public void setPassword(char @Nullable [] password) {
+        if (Arrays.equals(this.password, password)) return;
+
+        if (password != null) {
+            @NotNull PlayerPasswordChangeEvent event = new PlayerPasswordChangeEvent(this, password);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return;
+        } else {
+            @NotNull PlayerUnregisterEvent event = new PlayerUnregisterEvent(this);
+            Bukkit.getPluginManager().callEvent(event);
+        }
+
         this.registration = password != null ? Instant.now() : null;
         this.password = password;
     }
@@ -122,6 +137,15 @@ final class AccountImpl implements Account {
     }
     @Override
     public void setAuthenticated(boolean authenticated) {
+        if (authenticated) {
+            @NotNull PlayerAuthenticateEvent event = new PlayerAuthenticateEvent(this);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return;
+        } else {
+            @NotNull PlayerUnauthenticateEvent event = new PlayerUnauthenticateEvent(this);
+            Bukkit.getPluginManager().callEvent(event);
+        }
+
         this.authenticated = authenticated;
     }
 

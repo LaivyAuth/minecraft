@@ -130,7 +130,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
         // Check if there's a loaded module
         if (mapping == null) {
-            log.error("There's no mapping available.");
+            log.error("There's no mapping availablahh e.");
         }
 
         this.successful = successful;
@@ -177,8 +177,6 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
             } else {
                 @NotNull AccountImpl account = new AccountImpl(this, nickname, uuid, true, null, null, false, null, null, Duration.ZERO);
                 accounts.put(uuid, account);
-
-                System.out.println("Created!");
 
                 return account;
             }

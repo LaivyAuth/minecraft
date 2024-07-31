@@ -42,6 +42,7 @@ buffered-database: true
 unauthenticated:
   movement: false
   visible: true
+  timeout: 120 # In seconds
 
 updates:
   # Sets the time in minutes that the plugin should check for new mappings and plugin updates.
