@@ -378,7 +378,6 @@ final class Injection implements Flushable {
 
         @Override
         protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) throws IOException {
-            cause.printStackTrace();
         }
     }
 

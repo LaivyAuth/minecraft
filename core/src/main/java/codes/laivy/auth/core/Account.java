@@ -5,13 +5,15 @@ import codes.laivy.auth.LaivyAuth;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
 // todo: password history
-public interface Account {
+// todo: locale
+public interface Account extends Serializable {
 
     // Static initializers
 

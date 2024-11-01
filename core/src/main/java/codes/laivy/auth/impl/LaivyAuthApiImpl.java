@@ -5,9 +5,10 @@ import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.core.Account;
 import codes.laivy.auth.exception.AccountExistsException;
+import codes.laivy.serializable.Serializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,27 +50,6 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
     private LaivyAuthApiImpl(@NotNull LaivyAuth plugin) {
         this.plugin = plugin;
         this.configuration = Configuration.read(plugin.getConfig());
-
-        // Load all accounts
-        @NotNull File database = new File(getPlugin().getDataFolder(), "/database/");
-        if (!database.exists() && !database.mkdirs()) {
-            throw new IllegalStateException("cannot create database file");
-        } else {
-            @NotNull File @Nullable [] files = database.listFiles();
-            accounts.clear();
-
-            if (files != null) for (@NotNull File file : files) {
-                try (@NotNull FileInputStream stream = new FileInputStream(file)) {
-                    @NotNull JsonObject object = new JsonParser().parse(new InputStreamReader(stream)).getAsJsonObject();
-                    @NotNull AccountImpl account = AccountImpl.deserialize(this, object);
-
-                    accounts.put(account.getUniqueId(), account);
-                } catch (@NotNull Throwable throwable) {
-                    log.error("Cannot load account '{}' from database: {}", file.getName(), throwable.getMessage());
-                    log.atDebug().setCause(throwable).log();
-                }
-            }
-        }
 
         // Load all mappings
         boolean successful = false;
@@ -228,6 +208,31 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         return mapping;
     }
 
+    // Modules
+
+    public void load() {
+        // Load all accounts
+        @NotNull File database = new File(getPlugin().getDataFolder(), "/database/");
+        if (!database.exists() && !database.mkdirs()) {
+            throw new IllegalStateException("cannot create database file");
+        } else {
+            @NotNull File @Nullable [] files = database.listFiles();
+            accounts.clear();
+
+            if (files != null) for (@NotNull File file : files) {
+                try (@NotNull FileInputStream stream = new FileInputStream(file)) {
+                    @NotNull JsonElement element = JsonParser.parseReader(new InputStreamReader(stream));
+                    @NotNull AccountImpl account = Objects.requireNonNull(Serializer.fromJson(AccountImpl.class, element));
+
+                    accounts.put(account.getUniqueId(), account);
+                } catch (@NotNull Throwable throwable) {
+                    log.error("Cannot load account '{}' from database: {}", file.getName(), throwable.getMessage());
+                    log.atInfo().setCause(throwable).log();
+                }
+            }
+        }
+    }
+
     // Loaders
 
     @Override
@@ -241,22 +246,26 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         try {
             @NotNull Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-            for (@NotNull AccountImpl account : accounts.values()) try {
+            for (@NotNull AccountImpl account : accounts.values()) {
                 // Get file
                 @NotNull File file = new File(getPlugin().getDataFolder(), "/database/" + account.getUniqueId() + ".json");
                 if (!file.exists() && !file.getParentFile().mkdirs() & !file.createNewFile()) {
                     throw new IllegalStateException("cannot create account '" + account.getName() + "' database file");
                 }
 
-                // Write data
-                @NotNull JsonObject object = account.serialize();
+                try {
+                    // Write data
+                    @NotNull JsonElement element = Serializer.toJson(account);
 
-                try (@NotNull FileWriter writer = new FileWriter(file)) {
-                    writer.write(gson.toJson(object));
+                    try (@NotNull FileWriter writer = new FileWriter(file)) {
+                        writer.write(gson.toJson(element));
+                    }
+                } catch (@NotNull Throwable throwable) {
+                    log.error("Cannot unload account '{}' into database: {}", account.getName(), throwable.getMessage());
+                    log.atInfo().setCause(throwable).log();
+
+                    file.deleteOnExit();
                 }
-            } catch (@NotNull Throwable throwable) {
-                log.error("Cannot unload account '{}' into database: {}", account.getName(), throwable.getMessage());
-                log.atDebug().setCause(throwable).log();
             }
 
             if (mapping != null) mapping.close();

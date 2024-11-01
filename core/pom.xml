@@ -25,7 +25,7 @@
         <dependency>
             <groupId>codes.laivy</groupId>
             <artifactId>java-address</artifactId>
-            <version>1.0</version>
+            <version>1.2.1</version>
         </dependency>
 
         <dependency>
@@ -33,6 +33,12 @@
             <artifactId>spigot-api</artifactId>
             <version>1.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>codes.laivy</groupId>
+            <artifactId>java-serializable</artifactId>
+            <version>1.10.0</version>
         </dependency>
     </dependencies>
 

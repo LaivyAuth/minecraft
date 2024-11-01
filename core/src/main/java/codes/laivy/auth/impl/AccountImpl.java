@@ -1,28 +1,34 @@
 package codes.laivy.auth.impl;
 
 import codes.laivy.address.Address;
+import codes.laivy.auth.LaivyAuth;
 import codes.laivy.auth.core.Account;
 import codes.laivy.auth.core.Activity;
 import codes.laivy.auth.event.PlayerAuthenticateEvent;
 import codes.laivy.auth.event.PlayerPasswordChangeEvent;
 import codes.laivy.auth.event.PlayerUnauthenticateEvent;
 import codes.laivy.auth.event.PlayerUnregisterEvent;
-import com.google.gson.JsonObject;
+import codes.laivy.serializable.annotations.UsingSerializers;
+import codes.laivy.serializable.context.Context;
+import codes.laivy.serializable.context.MapContext;
+import codes.laivy.serializable.json.JsonSerializer;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.EOFException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
+@UsingSerializers
 final class AccountImpl implements Account {
 
     // Static initializers
 
-    private final @NotNull LaivyAuthApiImpl api;
+    private transient final @NotNull LaivyAuthApiImpl api;
 
     private final @NotNull String name;
     private final @NotNull UUID uuid;
@@ -30,12 +36,12 @@ final class AccountImpl implements Account {
     private @Nullable Type type;
 
     private char @Nullable [] password;
-    private boolean authenticated;
+    private transient boolean authenticated = false;
 
     private @Nullable Instant registration;
 
     // Playing time
-    private @Nullable Instant lastPlayingTimeCheck;
+    private transient @Nullable Instant lastPlayingTimeCheck;
     private @NotNull Duration playingTime;
 
     // Constructor
@@ -165,36 +171,49 @@ final class AccountImpl implements Account {
 
     // Serializers
 
-    public @NotNull JsonObject serialize() {
-        @NotNull JsonObject object = new JsonObject();
-
+    private static @NotNull MapContext serialize(@NotNull AccountImpl account) {
         // todo: Activity and addresses
         // todo: account version
+        @NotNull MapContext context = MapContext.create(JsonSerializer.getInstance());
 
-        object.addProperty("name", getName());
-        object.addProperty("uuid", getUniqueId().toString());
-        object.addProperty("playing_time_millis", getPlayingTime().getSeconds());
+        context.setObject("name", account.getName());
+        context.setObject("uuid", account.getUniqueId());
+        context.setObject("playing time", account.getPlayingTime());
 
-        if (getType() != null) {
-            object.addProperty("type", getType().name().toLowerCase());
-        } if (getPassword() != null) {
-            object.addProperty("password", new String(getPassword()));
-        } if (getRegistration() != null) {
-            object.addProperty("registration_time_millis", getRegistration().toEpochMilli());
+        if (account.getType() != null) {
+            context.setObject("type", account.getType());
+        } if (account.getPassword() != null) {
+            context.setObject("password", account.getPassword());
+        } if (account.getRegistration() != null) {
+            context.setObject("registration", account.getRegistration());
         }
 
-        return object;
+        return context;
     }
-    public static @NotNull AccountImpl deserialize(@NotNull LaivyAuthApiImpl api, @NotNull JsonObject object) {
-        @NotNull String name = object.get("name").getAsString();
-        @NotNull UUID uuid = UUID.fromString(object.get("uuid").getAsString());
-        @NotNull Duration playingTime = Duration.ofMillis(object.get("playing_time_millis").getAsLong());
+    private static @NotNull AccountImpl deserialize(@NotNull Context context) throws EOFException {
+        @NotNull MapContext map = context.getAsMap();
 
-        @Nullable Type type = object.has("type") ? Type.valueOf(object.get("type").getAsString().toUpperCase()) : null;
-        char @Nullable [] password = object.has("password") ? object.get("password").getAsString().toCharArray() : null;
-        @Nullable Instant registration = object.has("registration_time_millis") ? Instant.parse(object.get("registration_time_millis").getAsString()) : null;
+        @NotNull String name = Objects.requireNonNull(map.getObject(String.class, "name"));
+        @NotNull UUID uuid = Objects.requireNonNull(map.getObject(UUID.class, "uuid"));
+        @NotNull Duration playingTime = Objects.requireNonNull(map.getObject(Duration.class, "playing time"));
 
-        return new AccountImpl(api, name, uuid, false, type, password, false, 1, registration, playingTime);
+        @Nullable Type type = null;
+        char @Nullable [] password = null;
+        @Nullable Instant registration = null;
+
+        if (map.contains("type")) {
+            type = map.getObject(Type.class, "type");
+        } if (map.contains("password")) {
+            password = map.getObject(char[].class, "password");
+        } if (map.contains("registration")) {
+            registration = map.getObject(Instant.class, "registration");
+        }
+
+        if (!(LaivyAuth.getApi() instanceof LaivyAuthApiImpl)) {
+            throw new IllegalStateException("cannot deserialize AccountImpl because the required api is '" + LaivyAuthApiImpl.class.getName() + "'");
+        }
+
+        return new AccountImpl((LaivyAuthApiImpl) LaivyAuth.getApi(), name, uuid, false, type, password, false, 1, registration, playingTime);
     }
 
     // Implementations

@@ -1,7 +1,6 @@
 package codes.laivy.auth.event;
 
 import codes.laivy.auth.core.Account;
-import codes.laivy.auth.core.Activity;
 import org.bukkit.event.Cancellable;
 import org.jetbrains.annotations.NotNull;
 

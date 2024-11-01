@@ -6,16 +6,19 @@ import codes.laivy.auth.impl.SpigotListener;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 public final class LaivyAuth extends JavaPlugin {
 
     // Static initializers
 
     private static final @NotNull Logger log = LoggerFactory.getLogger(LaivyAuth.class);
+    private static @Nullable LaivyAuth instance;
 
     // Object
 
@@ -40,14 +43,25 @@ public final class LaivyAuth extends JavaPlugin {
         @NotNull Constructor<LaivyAuthApi> constructor = implementation.getDeclaredConstructor(LaivyAuth.class);
         constructor.setAccessible(true);
 
+        instance = this;
         api = constructor.newInstance(this);
+
+        // Load accounts
+        @NotNull Method method = implementation.getDeclaredMethod("load");
+        method.setAccessible(true);
+
+        method.invoke(api);
     }
 
     // Getters
 
     /* It's static to make the things easier :) */
     public static @NotNull LaivyAuthApi getApi() {
-        return getPlugin(LaivyAuth.class).api;
+        if (instance == null) {
+            throw new IllegalStateException("The LaivyAuth plugin hasn't been loaded yet");
+        }
+
+        return instance.api;
     }
 
     // Modules
