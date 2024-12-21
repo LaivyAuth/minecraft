@@ -1,0 +1,39 @@
+prefix: "&fʟᴀɪᴠʏ &6ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ"
+
+# If a player tries to join using an account that already is playing, the connection
+# will be blocked, this is the kick message
+prevent double join:
+  - "%prefix%"
+  - ""
+  - "&cThere's already an user playing with that account's nickname"
+  - "&7If you are the original owner of the account, you can log-in into the &eLaivyAuth &7website and manually disconnect"
+
+nickname case sensitive:
+  - "%prefix%"
+  - ""
+  - "&cYou cannot use this nickname because there's already a registered player with nickname '%original_player%'"
+
+premium account required:
+  - "%prefix%"
+  - ""
+  - "&cThis is a premium account, you cannot join using a cracked client!"
+
+premium accounts:
+  account verified:
+    - "%prefix%"
+    - ""
+    - "&7Account Verified Successfully",
+    - "&7Please reconnect again at the server...",
+    - "",
+    - "&8You may get kicked due \"&cFailed to log in: ...&8\", reconnect once more, it's normal!"
+
+whitelist:
+  blocked version:
+    - "%prefix%"
+    - ""
+    - "&cYou're trying to connect with an incompatible version!"
+
+  cracked users:
+    - "%prefix%"
+    - ""
+    - "&cThis server does only accepts premium minecraft users."
