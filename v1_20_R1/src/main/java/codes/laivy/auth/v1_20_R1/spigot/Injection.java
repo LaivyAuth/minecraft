@@ -1,13 +1,15 @@
 package codes.laivy.auth.v1_20_R1.spigot;
 
-import codes.laivy.auth.core.Account;
-import codes.laivy.auth.impl.netty.NettyInjection;
+import codes.laivy.auth.account.Account;
+import codes.laivy.auth.account.Account.Type;
+import codes.laivy.auth.utilities.netty.NettyInjection;
 import codes.laivy.auth.v1_20_R1.Main;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.exceptions.AuthenticationUnavailableException;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import net.minecraft.network.EnumProtocol;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.PacketDecrypter;
 import net.minecraft.network.PacketEncrypter;
@@ -16,7 +18,6 @@ import net.minecraft.network.protocol.handshake.PacketHandshakingInSetProtocol;
 import net.minecraft.network.protocol.login.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.LoginListener;
-import net.minecraft.server.network.ServerConnection;
 import net.minecraft.util.CryptographyException;
 import net.minecraft.util.MinecraftEncryption;
 import org.bukkit.Bukkit;
@@ -34,102 +35,213 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.PrivateKey;
+import java.time.Instant;
 import java.util.*;
 
-import static codes.laivy.auth.core.Account.Type;
 import static codes.laivy.auth.v1_20_R1.Main.getApi;
 import static codes.laivy.auth.v1_20_R1.Main.getConfiguration;
+import static codes.laivy.auth.v1_20_R1.reflections.PlayerReflections.*;
 
-final class Injection implements Flushable {
+public final class Injection implements Flushable {
 
     // Object
 
-    private final @NotNull Map<@NotNull Channel, @NotNull Integer> versions = new HashMap<>();
+    private final @NotNull Object lock = new Object();
 
-    private final @NotNull Map<@NotNull Channel, @NotNull String> nicknames = new HashMap<>();
-    private final @NotNull Map<@NotNull String, @NotNull Identifier> identifiers = new HashMap<>();
+    private final @NotNull Map<Channel, Integer> versions = new HashMap<>();
 
-    private final @NotNull NettyInjection netty;
+    private final @NotNull Map<UUID, Attempt> attemptsByUniqueId = new HashMap<>();
+    private final @NotNull Map<String, Attempt> attemptsByNickname = new HashMap<>();
+    private final @NotNull Map<Channel, Attempt> attemptsByChannel = new HashMap<>();
+
+    private final @NotNull NettyInjection nettyInjection;
 
     Injection(@NotNull Channel channel) {
-        this.netty = new Handler(channel);
+        this.nettyInjection = new NettyInjectionImpl(channel);
     }
 
     // Getters
 
-    public @NotNull NettyInjection getNetty() {
-        return netty;
+    public @NotNull NettyInjection getNettyInjection() {
+        return nettyInjection;
+    }
+
+    // Attempts
+
+    public @NotNull Optional<Attempt> getAttempt(@NotNull Channel channel) {
+        @Nullable Attempt attempt = attemptsByChannel.containsKey(channel) ? attemptsByChannel.get(channel) : null;
+
+        if (attempt != null && attempt.getTimeout() != null && Instant.now().isAfter(attempt.getTimeout().getDate())) {
+            attempt = null;
+        }
+
+        return Optional.ofNullable(attempt);
+    }
+    public @NotNull Optional<Attempt> getAttempt(@NotNull String nickname) {
+        @Nullable Attempt attempt = attemptsByNickname.containsKey(nickname) ? attemptsByNickname.get(nickname) : null;
+
+        if (attempt != null && attempt.getTimeout() != null && Instant.now().isAfter(attempt.getTimeout().getDate())) {
+            attempt = null;
+        }
+
+        return Optional.ofNullable(attempt);
+    }
+    public @NotNull Optional<Attempt> getAttempt(@NotNull UUID uuid) {
+        @Nullable Attempt attempt = attemptsByUniqueId.containsKey(uuid) ? attemptsByUniqueId.get(uuid) : null;
+
+        if (attempt != null && attempt.getTimeout() != null && Instant.now().isAfter(attempt.getTimeout().getDate())) {
+            attempt = null;
+        }
+
+        return Optional.ofNullable(attempt);
     }
 
     // Modules
 
     @Override
     public void flush() throws IOException {
-        getNetty().flush();
-    }
-
-    // Implementations
-
-    @Override
-    public boolean equals(@Nullable Object object) {
-        if (this == object) return true;
-        if (!(object instanceof Injection injection)) return false;
-        return Objects.equals(getNetty(), injection.getNetty());
-    }
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(getNetty());
+        getNettyInjection().flush();
     }
 
     // Classes
 
-    private final class Identifier implements Flushable {
+    public final class Attempt implements Flushable {
 
-        // Object
+        private final @Nullable Account account;
 
-        private final @NotNull Channel channel;
+        private @NotNull Channel channel;
+        private final @NotNull String nickname;
 
-        private final @NotNull String name;
-        private @UnknownNullability UUID uuid;
+        private final int version;
+
+        private @Nullable UUID uuid;
         private @Nullable Type type;
-        
-        private boolean reconnect = true;
-        private boolean pending = false;
 
-        private Identifier(@NotNull Channel channel, @NotNull String name) {
+        private @Nullable Timeout timeout;
+        private volatile boolean pending;
+
+        public Attempt(@NotNull Channel channel, @NotNull String nickname, @Nullable Account account) {
             this.channel = channel;
-            this.name = name;
+            this.nickname = nickname;
+            this.account = account;
+
+            // Retrieve version
+            synchronized (lock) {
+                if (!versions.containsKey(channel)) {
+                    throw new IllegalStateException("client's protocol version missing");
+                }
+
+                this.version = versions.get(channel);
+                versions.remove(channel);
+            }
+
+            // Add to attempts
+            synchronized (lock) {
+                attemptsByChannel.put(channel, this);
+                attemptsByNickname.put(nickname, this);
+            }
         }
 
         // Getters
 
-        public @NotNull String getName() {
-            return name;
+        public @Nullable Account getAccount() {
+            return account;
         }
+
+        public @NotNull Channel getChannel() {
+            return channel;
+        }
+        public void setChannel(@NotNull Channel channel) {
+            synchronized (lock) {
+                attemptsByChannel.remove(getChannel());
+                this.channel = channel;
+                attemptsByChannel.put(getChannel(), this);
+            }
+        }
+
+        public int getVersion() {
+            return version;
+        }
+
+        public @NotNull String getNickname() {
+            return nickname;
+        }
+
         public @Nullable UUID getUniqueId() {
             return uuid;
         }
+        public void setUniqueId(@Nullable UUID uuid) {
+            if (getUniqueId() != null) {
+                attemptsByUniqueId.remove(getUniqueId());
+            }
 
-        public boolean isReconnect() {
-            return reconnect;
-        }
-        public void setReconnect(boolean reconnect) {
-            this.reconnect = reconnect;
+            this.uuid = uuid;
+            attemptsByUniqueId.put(getUniqueId(), this);
         }
 
         public @Nullable Type getType() {
-            return this.type;
+            return type;
         }
-        public void setType(@NotNull Type type) {
+        public void setType(@Nullable Type type) {
             this.type = type;
+        }
+
+        public @Nullable Timeout getTimeout() {
+            return timeout;
+        }
+        public void setTimeout(@Nullable Timeout timeout) {
+            this.timeout = timeout;
         }
 
         // Modules
 
+        public boolean isPending() {
+            return pending;
+        }
+        public void setPending(boolean pending) {
+            this.pending = pending;
+        }
+
+        public boolean isReconnect() {
+            return getTimeout() == null;
+        }
+        public boolean reconnect() {
+            boolean reconnect = isReconnect();
+            setTimeout(new Timeout(Instant.now().plus(getApi().getConfiguration().getPremiumAuthentication().getReconnectTimeout())));
+
+            return reconnect;
+        }
+
+        // Flushable
+
         @Override
         public void flush() throws IOException {
-            nicknames.remove(channel);
-            identifiers.remove(getName());
+            synchronized (lock) {
+                attemptsByChannel.remove(getChannel());
+                attemptsByNickname.remove(getNickname());
+
+                if (getUniqueId() != null) {
+                    attemptsByUniqueId.remove(getUniqueId());
+                }
+            }
+        }
+
+        // Classes
+
+        public static final class Timeout {
+
+            private final @NotNull Instant date;
+
+            public Timeout(@NotNull Instant date) {
+                this.date = date;
+            }
+
+            // Getters
+
+            public @NotNull Instant getDate() {
+                return date;
+            }
+
         }
 
         // Implementations
@@ -137,78 +249,88 @@ final class Injection implements Flushable {
         @Override
         public boolean equals(@Nullable Object object) {
             if (this == object) return true;
-            if (!(object instanceof Identifier that)) return false;
-            return Objects.equals(getName(), that.getName());
+            if (!(object instanceof Attempt attempt)) return false;
+            return Objects.equals(getNickname(), attempt.getNickname()) && Objects.equals(uuid, attempt.uuid);
         }
         @Override
         public int hashCode() {
-            return Objects.hashCode(getName());
-        }
-
-        @Override
-        public @NotNull String toString() {
-            return "Identifier{" +
-                    "name='" + name + '\'' +
-                    '}';
+            return Objects.hash(getNickname(), uuid);
         }
 
     }
-    private static final class FireEventsThread extends Thread {
-
-        private final @NotNull Identifier identifier;
-        private final @NotNull LoginListener listener;
-
-        private FireEventsThread(@NotNull Identifier identifier, @NotNull LoginListener listener) {
-            super("User Authentication '" + identifier.getName() + "'");
-
-            this.identifier = identifier;
-            this.listener = listener;
-        }
-
-        @Override
-        public void run() {
-            try {
-                // Save all the things into the api
-                getApi().getOrCreate(identifier.uuid, identifier.name).setType(identifier.getType());
-
-                // Finish firing all events
-                (listener.new LoginHandler()).fireEvents();
-            } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException e) {
-                throw new RuntimeException("cannot retrieve enum methods", e);
-            } catch (@NotNull Exception e) {
-                throw new RuntimeException("cannot fire events", e);
-            }
-        }
-    }
-
-    private final class Handler extends NettyInjection {
+    private final class NettyInjectionImpl extends NettyInjection {
 
         // Object
 
-        private Handler(@NotNull Channel channel) {
+        private NettyInjectionImpl(@NotNull Channel channel) {
             super(channel);
         }
 
-        // Modules
-
         @Override
-        protected @Nullable Object read(@NotNull ChannelHandlerContext context, @NotNull Object message) throws IOException {
+        protected @UnknownNullability Object read(@NotNull ChannelHandlerContext context, @NotNull Object message) throws IOException {
             @NotNull Channel channel = context.channel();
 
-            if (message instanceof PacketHandshakingInSetProtocol packet) {
-                versions.put(channel, packet.c());
-            } else if (message instanceof PacketLoginInStart start) { // Create profile for channel
-                @NotNull String nickname = start.a();
-                nicknames.put(channel, nickname);
-
-                if (!identifiers.containsKey(nickname)) {
-                    @NotNull Identifier identifier = new Identifier(channel, nickname);
-                    identifiers.put(nickname, identifier);
+            if (message instanceof @NotNull PacketHandshakingInSetProtocol packet) {
+                // EnumProtocol represents the 'Next State' property from the handshaking protocol
+                // We should only start authentication with channels with the 'Next State = 2' that
+                // represents the 'Login' request. See more at:
+                // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol#Handshake
+                if (packet.a() != EnumProtocol.d) {
+                    return message;
                 }
-            } else if (message instanceof PacketLoginInEncryptionBegin begin) {
+
+                // Add the version to the map
+                versions.put(channel, packet.c());
+            } else if (message instanceof @NotNull PacketLoginInStart start) { // Create profile for channel
+                // Start attempt
+                @NotNull String nickname = start.a();
+                @Nullable UUID uuid = start.c().orElse(null);
+
+                // Check if there's already a user playing with that nickname
+                if (Bukkit.getOnlinePlayers().stream().anyMatch(player -> player.getName().equals(nickname))) {
+                    // todo: message.yml
+                    return new PacketLoginOutDisconnect(IChatBaseComponent.a("prevent double join"));
+                }
+
+                @Nullable Account nicknameAccount = getApi().getAccount(nickname).orElse(null);
+                if (nicknameAccount != null && !nicknameAccount.getName().equals(nickname)) {
+                    // todo: message.yml
+                    return new PacketLoginOutDisconnect(IChatBaseComponent.a("nickname case sensitive"));
+                }
+
+                // Retrieve account
+                @Nullable Account account;
+                @Nullable Attempt attempt;
+
+                if (uuid != null) {
+                    account = getApi().getAccount(uuid).orElse(null);
+                    attempt = getAttempt(uuid).orElse(null);
+
+                    if (nicknameAccount != null && !nicknameAccount.getUniqueId().equals(uuid)) {
+                        account = nicknameAccount;
+                    }
+                } else {
+                    account = nicknameAccount;
+                    attempt = getAttempt(nickname).orElse(null);
+                }
+
+                // Create or retrieve existent attempt
+                if (attempt != null) {
+                    attempt.setChannel(channel);
+                    Main.log.info("Connection attempt '{}' with uuid '{}' reconnected.", nickname, uuid);
+                } else {
+                    attempt = new Attempt(channel, nickname, account);
+                    Main.log.info("Started new connection attempt '{}' with uuid '{}'.", nickname, uuid);
+                }
+
+                attempt.setUniqueId(uuid);
+
+                // Verify account
+            } else if (message instanceof @NotNull PacketLoginInEncryptionBegin begin) {
                 // Identifier
-                @NotNull String nickname = nicknames.get(channel);
-                @NotNull Identifier identifier = identifiers.get(nickname);
+                @NotNull Attempt attempt = getAttempt(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's attempt"));
+                @NotNull String nickname = attempt.getNickname();
+                @Nullable Account account = attempt.getAccount();
 
                 try {
                     @NotNull PrivateKey privateKey = ((CraftServer) Bukkit.getServer()).getServer().L().getPrivate();
@@ -237,19 +359,24 @@ final class Injection implements Flushable {
                     // Check if the session was successful
                     @NotNull GameProfile approved = server.am().hasJoinedServer(new GameProfile(null, nickname), secret, address);
                     if (approved != null) try {
-                        identifier.type = Type.PREMIUM;
-                        identifier.uuid = approved.getId();
+                        attempt.setType(Type.PREMIUM);
+                        attempt.setUniqueId(approved.getId());
 
                         listener.a(begin);
                     } catch (@NotNull Throwable throwable) {
                         Main.log.error("Cannot authenticate premium player {}.", nickname);
                         Main.log.atDebug().setCause(throwable).log();
                     } else try {
+                        if (account != null && account.getType() == Type.PREMIUM) {
+                            listener.b(IChatBaseComponent.a("premium account required"));
+                            return null;
+                        }
+
                         // Initialize
                         listener.initUUID();
 
-                        identifier.uuid = getListenerProfile(listener).getId();
-                        identifier.type = Type.CRACKED;
+                        attempt.setUniqueId(getListenerProfile(listener).getId());
+                        attempt.setType(Type.CRACKED);
 
                         // Encryptor and Decryptor
                         @NotNull SecretKey secretkey = begin.a(privatekey);
@@ -258,7 +385,7 @@ final class Injection implements Flushable {
                         channel.pipeline().addBefore("splitter", "decrypt", new PacketDecrypter(cipher));
                         channel.pipeline().addBefore("prepender", "encrypt", new PacketEncrypter(cipher1));
 
-                        new FireEventsThread(identifier, listener).start();
+                        new FireEventsThread(attempt, listener).start();
                     } catch (@NotNull Throwable throwable) {
                         Main.log.error("Cannot authenticate cracked player {}.", nickname);
                         Main.log.atDebug().setCause(throwable).log();
@@ -270,31 +397,30 @@ final class Injection implements Flushable {
                 }
             }
 
+            // Finish
             return message;
         }
-
         @Override
-        protected @Nullable Object write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws IOException {
+        protected @UnknownNullability Object write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws IOException {
             @NotNull Channel channel = context.channel();
 
-            if (message instanceof PacketLoginOutEncryptionBegin begin) {
-                @NotNull Identifier identifier = identifiers.get(nicknames.get(channel));
+            if (message instanceof @NotNull PacketLoginOutEncryptionBegin begin) {
+                @NotNull Attempt attempt = getAttempt(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's attempt"));
+                @Nullable Account account = attempt.getAccount();
 
-                // Retrieve an account (If exists) and set the current type
-                @NotNull Optional<Account> optional = getApi().getAccount(identifier.getName());
-                optional.ifPresent(account -> identifier.type = account.getType());
+                if (account != null) {
+                    attempt.setType(account.getType());
+                }
 
-                // Continue authentication
-                if (identifier.getType() == null) {
-                    if (identifier.isReconnect()) { // Tell the player to reconnect
-                        identifier.setReconnect(false);
-                        identifier.pending = false;
-
-                        // todo: message.yml
-                        message = new PacketLoginOutDisconnect(IChatBaseComponent.a("§fʟᴀɪᴠʏ §6ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ§r\n\n§7Account Verified Successfuly\n§7Please reconnect again at the server...\n\n§8You may get kicked due \"§cFailed to log in: ...§8\", reconnect once more, it's normal!"));
-                    }
-                } else {
-                    if (identifier.getType() == Type.CRACKED) {
+                // Continue with premium authentication
+                if (getApi().getConfiguration().getPremiumAuthentication().isEnabled()) {
+                    // Check if the attempt type is null
+                    if (attempt.getType() == null) {
+                        if (attempt.reconnect()) { // Tell the player to reconnect
+                            // todo: message.yml
+                            return new PacketLoginOutDisconnect(IChatBaseComponent.a("premium accounts.account verified"));
+                        }
+                    } else if (attempt.getType() == Type.CRACKED) {
                         try {
                             @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
                             @NotNull Field enumField = listener.getClass().getDeclaredField("h");
@@ -304,103 +430,135 @@ final class Injection implements Flushable {
                             enumField.set(listener, enumObject);
 
                             listener.initUUID();
-                            new FireEventsThread(identifier, listener).start();
+                            new FireEventsThread(attempt, listener).start();
 
                             return null;
-                        } catch (@NotNull
-                        NoSuchFieldException | @NotNull IllegalAccessException | @NotNull ClassNotFoundException e) {
+                        } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException | @NotNull ClassNotFoundException e) {
                             throw new RuntimeException("cannot finish cracked user authentication", e);
                         }
                     }
                 }
             } else if (message instanceof PacketLoginOutSuccess) {
-                if (Arrays.stream(getConfiguration().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
+                if (Arrays.stream(getConfiguration().getWhitelist().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
                     // todo: message.yml
-                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("§fʟᴀɪᴠʏ §6ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ\n\n§cYou're trying to connect with an incompatible version!"));
+                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("whitelist.blocked version"));
                     return null;
-                } else if ( !getConfiguration().isAllowCrackedUsers()) {
+                } else if (!getConfiguration().getWhitelist().isAllowCrackedUsers()) {
                     // todo: message.yml
-                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("§fʟᴀɪᴠʏ §6ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ\n\n§cThis server does only accepts "));
+                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("whitelist.cracked users"));
                     return null;
                 } else {
-                    @NotNull Identifier identifier = identifiers.get(nicknames.get(channel));
+                    @NotNull Attempt attempt = getAttempt(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's attempt"));
+
+                    if (attempt.getUniqueId() == null) {
+                        throw new IllegalStateException("the user hasn't been successfully identified");
+                    }
 
                     try {
-                        @NotNull Account account = getApi().getOrCreate(identifier.uuid, identifier.getName());
-                        account.setType(identifier.getType());
+                        @NotNull Account account = attempt.getAccount() != null ? attempt.getAccount() : getApi().getOrCreate(attempt.getUniqueId(), attempt.getNickname());
+                        account.setType(attempt.getType());
+                        account.setName(attempt.getNickname());
                     } finally {
-                        identifier.flush();
+                        attempt.flush();
                     }
                 }
             }
 
+            // Finish
             return message;
         }
 
         @Override
         protected void close(@NotNull ChannelHandlerContext context) throws IOException {
-
             @NotNull Channel channel = context.channel();
-            @Nullable String nickname = nicknames.containsKey(channel) ? nicknames.get(channel) : null;
+            @NotNull NetworkManager manager = getNetworkManager(channel);
 
-            if (nickname != null) {
-                @Nullable Identifier identifier = identifiers.containsKey(nickname) ? identifiers.get(nickname) : null;
+            if (!(manager.j() instanceof LoginListener)) {
+                return;
+            }
 
-                if (identifier != null && !identifier.isReconnect()) {
-                    if (!identifier.pending) {
-                        identifier.pending = true;
-                        return;
-                    }
+            @Nullable Attempt attempt = getAttempt(channel).orElse(null);
 
-                    identifier.setReconnect(true);
-                    identifier.pending = false;
+            if (attempt != null && !attempt.isReconnect()) {
+                @Nullable Account account = attempt.getAccount();
 
-                    identifier.flush();
+                if (!attempt.isPending()) {
+                    attempt.setPending(true);
+                    return;
+                }
 
-                    // Set cracked
-                    try {
-                        // Get essential fields
-                        @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
-                        listener.initUUID();
+                attempt.flush();
 
-                        // Get unique id
-                        @NotNull UUID uuid = getListenerProfile(listener).getId();
+                // Account
+                if (account != null) {
+                    return;
+                }
 
-                        // Set on account
-                        getApi().getOrCreate(uuid, nickname).setType(Type.CRACKED);
-                    } catch (@NotNull Throwable e) {
-                        Main.log.error("Cannot mark player {} as cracked: {}", nickname, e.getMessage());
-                        Main.log.atDebug().setCause(e).log();
-                    }
+                // Set cracked
+                try {
+                    // Get essential fields
+                    @NotNull LoginListener listener = (LoginListener) manager.j();
+                    listener.initUUID();
+
+                    // Get unique id
+                    @NotNull UUID uuid = getListenerProfile(listener).getId();
+
+                    // Set on account
+                    getApi().getOrCreate(uuid, attempt.getNickname()).setType(Type.CRACKED);
+                } catch (@NotNull Throwable e) {
+                    Main.log.error("Cannot mark player {} as cracked: {}", attempt.getNickname(), e.getMessage());
+                    Main.log.atDebug().setCause(e).log();
                 }
             }
         }
 
         @Override
         protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) throws IOException {
+            cause.printStackTrace();
         }
+
     }
 
-    // Utilities
+    private static final class FireEventsThread extends Thread {
 
-    private static @NotNull GameProfile getListenerProfile(@NotNull LoginListener listener) throws NoSuchFieldException, IllegalAccessException {
-        @NotNull Field field = LoginListener.class.getDeclaredField("j");
-        field.setAccessible(true);
+        private final @NotNull Attempt attempt;
+        private final @NotNull LoginListener listener;
 
-        return ((GameProfile) field.get(listener));
-    }
-    private static @NotNull NetworkManager getNetworkManager(@NotNull Channel channel) {
-        @NotNull ServerConnection connection = Objects.requireNonNull(((CraftServer) Bukkit.getServer()).getServer().ad(), "cannot retrieve server connection");
-        return connection.e().stream().filter(network -> network.m.compareTo(channel) == 0).findFirst().orElseThrow(() -> new NullPointerException("Cannot retrieve network manager"));
-    }
-    private static byte[] getEncryptionBytes(@NotNull LoginListener listener) {
-        try {
-            @NotNull Field field = listener.getClass().getDeclaredField("e");
-            field.setAccessible(true);
+        private FireEventsThread(@NotNull Attempt attempt, @NotNull LoginListener listener) {
+            super("User Authentication '" + attempt.getNickname() + "'");
 
-            return (byte[]) field.get(listener);
-        } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException e) {
-            throw new RuntimeException("cannot get encryption bytes from login listener", e);
+            this.attempt = attempt;
+            this.listener = listener;
+        }
+
+        // Getters
+
+        public @NotNull Attempt getAttempt() {
+            return attempt;
+        }
+        public @NotNull LoginListener getListener() {
+            return listener;
+        }
+
+        // Module
+
+        @Override
+        public void run() {
+            if (getAttempt().getUniqueId() == null) {
+                throw new IllegalStateException("the user hasn't been successfully identified");
+            }
+
+            try {
+                // Save all the things into the api
+                getApi().getOrCreate(getAttempt().getUniqueId(), getAttempt().getNickname()).setType(getAttempt().getType());
+
+                // Finish firing all events
+                (getListener().new LoginHandler()).fireEvents();
+            } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException e) {
+                throw new RuntimeException("cannot retrieve enum methods", e);
+            } catch (@NotNull Exception e) {
+                throw new RuntimeException("cannot fire events", e);
+            }
         }
     }
 

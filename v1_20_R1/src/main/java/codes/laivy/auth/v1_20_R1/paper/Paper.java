@@ -1,4 +1,4 @@
-package codes.laivy.auth.v1_20_R1.spigot;
+package codes.laivy.auth.v1_20_R1.paper;
 
 import codes.laivy.auth.v1_20_R1.reflections.ServerReflections;
 import io.netty.channel.Channel;
@@ -10,15 +10,14 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.util.Objects;
 
-// todo: disable Connection-throttling at reconnect verification
-final class Spigot implements Flushable {
+final class Paper implements Flushable {
 
     // Static initializers
 
-    private static volatile @UnknownNullability Spigot instance;
+    private static volatile @UnknownNullability Paper instance;
 
-    public static synchronized void initialize() {
-        instance = new Spigot();
+    public static synchronized void initialize() throws NoSuchFieldException, IllegalAccessException {
+        instance = new Paper();
     }
     public static synchronized void interrupt() throws IOException {
         if (instance != null) try {
@@ -32,7 +31,7 @@ final class Spigot implements Flushable {
 
     private final @NotNull Injection injection;
 
-    private Spigot() {
+    private Paper() {
         // Set online-mode=true
         ServerReflections.setOnlineMode(true);
 
@@ -59,8 +58,8 @@ final class Spigot implements Flushable {
     @Override
     public boolean equals(@Nullable Object object) {
         if (this == object) return true;
-        if (!(object instanceof @NotNull Spigot spigot)) return false;
-        return Objects.equals(getInjection(), spigot.getInjection());
+        if (!(object instanceof @NotNull Paper paper)) return false;
+        return Objects.equals(getInjection(), paper.getInjection());
     }
     @Override
     public int hashCode() {

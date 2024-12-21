@@ -1,28 +1,28 @@
-package codes.laivy.auth.v1_20_R1;
+package codes.laivy.auth.v1_20_R2;
 
 import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.mapping.Mapping;
 import codes.laivy.auth.platform.Platform;
 import codes.laivy.auth.platform.Version;
-import codes.laivy.auth.v1_20_R1.reflections.ServerReflections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public final class Main implements Mapping {
 
-    // Static initializers
+// Static initializers
 
     private static @UnknownNullability Main instance;
 
     private static @NotNull String name() {
-        return "1.20.1";
+        return "1.20.2";
     }
 
     // todo: maping name at the logger name
@@ -78,7 +78,7 @@ public final class Main implements Mapping {
     }
 
     public int @NotNull [] getCompatibleVersions() {
-        return new int[] { 763 };
+        return new int[] { 764 };
     }
     @Override
     public boolean isCompatible() {
@@ -89,7 +89,7 @@ public final class Main implements Mapping {
             }
 
             // Retrieve the protocol version
-            int protocol = ServerReflections.getProtocolVersion();
+            int protocol = getProtocolVersion();
 
             // Finish
             return Arrays.stream(getCompatibleVersions()).anyMatch(compatible -> compatible == protocol);
@@ -104,7 +104,7 @@ public final class Main implements Mapping {
     public void start() {
         if (Platform.PAPER.isCompatible()) {
             try {
-                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.paper.Paper");
+                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R2.paper.Paper");
 
                 @NotNull Method method = target.getDeclaredMethod("initialize");
                 method.setAccessible(true);
@@ -118,7 +118,7 @@ public final class Main implements Mapping {
             }
         } else if (Platform.SPIGOT.isCompatible()) {
             try {
-                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
+                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R2.spigot.Spigot");
 
                 @NotNull Method method = target.getDeclaredMethod("initialize");
                 method.setAccessible(true);
@@ -137,9 +137,8 @@ public final class Main implements Mapping {
     }
     @Override
     public void close() {
-        // todo: check this
         if (Platform.SPIGOT.isCompatible()) try {
-            @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
+            @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R2.spigot.Spigot");
 
             @NotNull Method method = target.getDeclaredMethod("interrupt");
             method.setAccessible(true);
@@ -154,6 +153,35 @@ public final class Main implements Mapping {
         } else {
             throw new UnsupportedOperationException();
         }
+    }
+
+    // Utilities
+
+    private static int getProtocolVersion() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        // Constants
+        @NotNull Class<?> sharedConstantsClass = Class.forName("net.minecraft.SharedConstants");
+        @NotNull Class<?> worldVersionClass = Class.forName("net.minecraft.WorldVersion");
+
+        // Start retrieving
+        @NotNull Field field = sharedConstantsClass.getDeclaredField("bi");
+        field.setAccessible(true);
+
+        @NotNull Object worldVersion = field.get(null);
+
+        if (!worldVersionClass.isAssignableFrom(worldVersion.getClass())) {
+            throw new ClassCastException("cannot cast '" + worldVersion.getClass() + "' into a valid '" + worldVersionClass + "' class");
+        }
+
+        @NotNull Method version = worldVersion.getClass().getDeclaredMethod("e");
+        version.setAccessible(true);
+
+        @NotNull Object versionObject = version.invoke(worldVersion);
+
+        if (!Integer.class.isAssignableFrom(versionObject.getClass())) {
+            throw new ClassCastException("cannot cast '" + versionObject.getClass() + "' into a valid '" + Integer.class + "' class");
+        }
+
+        return (int) versionObject;
     }
 
 }

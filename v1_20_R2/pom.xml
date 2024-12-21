@@ -3,7 +3,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>codes.laivy</groupId>
         <artifactId>auth</artifactId>
@@ -11,7 +10,7 @@
     </parent>
 
     <groupId>codes.laivy.auth</groupId>
-    <artifactId>v1_20_R1</artifactId>
+    <artifactId>v1_20_R2</artifactId>
     <version>1.0</version>
 
     <properties>
@@ -39,7 +38,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.20.1-R0.1-SNAPSHOT</version>
+            <version>1.20.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -84,7 +83,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>codes.laivy.auth.v1_20_R1.Main</mainClass>
+                            <mainClass>codes.laivy.auth.v1_20_R2.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
