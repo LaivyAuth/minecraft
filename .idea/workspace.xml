@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="76d35d64-16ae-43b5-aece-0e7c1c254630" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/api/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/captcha/Captcha.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/recovery/Recovery.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/twofactor/TwoFactor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/src/main/resources/config.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/src/main/resources/messages/en_us.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/src/main/resources/weak passwords.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/LaivyAuth.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/Mappings.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/Resources.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/AuthEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerAuthenticateEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerPasswordChangeEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerRegisterEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerUnauthenticateEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerUnregisterEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/AccountImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/AuthenticationCommands.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/ConfigurationImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/LaivyAuthApiImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/SpigotListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bukkit/src/main/resources/plugin.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugin/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utilities/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/paper/Injection.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/paper/Paper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/reflections/PlayerReflections.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/reflections/ServerReflections.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/InjectionNew.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/v1_20_R2/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/LaivyAuth.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/api/LaivyAuthApi.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/api/LaivyAuthApi.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/config/Configuration.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/config/Configuration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/core/Account.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/account/Account.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/core/Activity.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/account/Activity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/event/AuthEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/event/PlayerAuthenticateEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/event/PlayerPasswordChangeEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/event/PlayerRegisterEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/event/PlayerUnauthenticateEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/event/PlayerUnregisterEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/exception/AccountExistsException.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/exception/AccountExistsException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/impl/AccountImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/impl/AuthenticationCommands.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/impl/LaivyAuthApiImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/impl/Mapping.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/mapping/Mapping.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/impl/SpigotListener.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/impl/netty/NettyInjection.java" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/src/main/java/codes/laivy/auth/utilities/netty/NettyInjection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/utilities/Reflections.java" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/src/main/java/codes/laivy/auth/utilities/Reflections.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/utilities/Version.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/platform/Version.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/codes/laivy/auth/utilities/platform/Platform.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/platform/Platform.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/resources/config.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/resources/plugin.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1_20_R1/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Injection.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Injection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Kotlin Class" />
+        <option value="Class" />
+        <option value="Interface" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="jar://C:/Program Files/Java/jdk-17/lib/src.zip!/java.base/java/nio/channels/ScatteringByteChannel.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://C:/Program Files/Java/jdk-17/lib/src.zip!/java.base/java/nio/channels/SocketChannel.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/codes/laivy/java-serializable/1.10.0/java-serializable-1.10.0-sources.jar!/codes/laivy/serializable/Serializer.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/codes/laivy/java-serializable/1.10.0/java-serializable-1.10.0-sources.jar!/codes/laivy/serializable/context/SerializeInputContext.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport-classes-epoll/4.1.82.Final/netty-transport-classes-epoll-4.1.82.Final.jar!/io/netty/channel/epoll/AbstractEpollStreamChannel.class" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport-classes-epoll/4.1.82.Final/netty-transport-classes-epoll-4.1.82.Final.jar!/io/netty/channel/epoll/EpollSocketChannel.class" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport-classes-epoll/4.1.82.Final/netty-transport-classes-epoll-4.1.82.Final.jar!/io/netty/channel/epoll/EpollSocketChannelConfig.class" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.1.82.Final/netty-transport-4.1.82.Final-sources.jar!/io/netty/channel/Channel.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.1.82.Final/netty-transport-4.1.82.Final-sources.jar!/io/netty/channel/ChannelHandlerContext.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.1.82.Final/netty-transport-4.1.82.Final-sources.jar!/io/netty/channel/ChannelInboundHandlerAdapter.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.1.82.Final/netty-transport-4.1.82.Final-sources.jar!/io/netty/channel/socket/DuplexChannel.java" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="JvmLoggingSettingsStorage">
+    <option name="loggerId" value="Slf4j" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2jdeBsZ4MLbPxvUzdPZ328vHpko" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Maven. [clean,install,-pl,core].executor": "Run",
+    "Maven.auth [clean,install,-U].executor": "Run",
+    "Maven.auth [clean,install,-pl,bukkit].executor": "Run",
+    "Maven.auth [clean,install,-pl,core].executor": "Run",
+    "Maven.auth [clean,install,-pl,plugin].executor": "Run",
+    "Maven.auth [clean,install,-pl,v1_20_R1].executor": "Run",
+    "Maven.auth [clean,install].executor": "Run",
+    "Maven.auth [clean,package,-U].executor": "Run",
+    "Maven.auth [clean,package,-pl,plugin].executor": "Run",
+    "Maven.auth [clean,package].executor": "Run",
+    "Maven.auth [compile].executor": "Run",
+    "Maven.auth [install,-pl,core].executor": "Run",
+    "Maven.auth [install].executor": "Run",
+    "Maven.auth [package].executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "G:/Meu Drive/Codes/LaivyAuth/v1_20_R2/src/main/java/codes/laivy/auth",
+    "onboarding.tips.debug.path": "G:/Meu Drive/Codes/LaivyAuth/v1_20_R2/src/main/java/codes/laivy/auth/Main.java",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.1484375",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "Errors"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="G:\Meu Drive\Codes\LaivyAuth\v1_20_R2\src\main\java\codes\laivy\auth" />
+      <recent name="G:\Meu Drive\Codes\LaivyAuth\v1_20_R1\src\main\java\codes\laivy\auth\v1_20_R1\paper" />
+      <recent name="G:\Meu Drive\Codes\LaivyAuth\.idea" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="G:\Meu Drive\Codes\LaivyAuth\api\src\main\resources" />
+      <recent name="G:\Meu Drive\Codes\LaivyAuth\plugin\src\main\resources" />
+      <recent name="G:\Meu Drive\Codes\LaivyAuth\bukkit\src\main\resources" />
+      <recent name="G:\Meu Drive\Codes\LaivyAuth\utilities\src\main\java\codes\laivy\auth\utilities" />
+      <recent name="G:\Meu Drive\Codes\Gambleverse\DogoAuth\core\src\main\resources" />
+    </key>
+    <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="codes.laivy.auth.impl" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="codes.laivy.auth.delivery" />
+      <recent name="codes.laivy.auth.event" />
+      <recent name="codes.laivy.auth.v1_20_R1.injection" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn  install -pl core" />
+      <command value="mvn install -pl core" />
+      <command value="mvn clean install -pl core" />
+      <command value="mvn clean install -pl v1_20_R1" />
+      <command value="mvn clean install -pl plugin" />
+      <command value="mvn clean install" />
+      <command value="mvn compile" />
+      <command value="mvn install" />
+      <command value="mvn package" />
+      <command value="mvn clean package" />
+      <command value="mvn clean package -U" />
+      <command value="mvn clean install -pl bukkit" />
+      <command value="mvn clean package -pl plugin" />
+      <command value="mvn clean install -U" />
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="laivyauth" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="laivyauth" />
+      <option name="filePath" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="76d35d64-16ae-43b5-aece-0e7c1c254630" name="Changes" comment="" />
+      <created>1721721249950</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1721721249950</updated>
+    </task>
+    <servers />
+  </component>
+</project>
