@@ -1,0 +1,232 @@
+#   _          _                _         _   _
+#  | |    __ _(_)_   ___   _   / \  _   _| |_| |__
+#  | |   / _` | \ \ / / | | | / _ \| | | | __| '_ \
+#  | |__| (_| | |\ V /| |_| |/ ___ \ |_| | |_| | | |
+#  |_____\__,_|_| \_/  \__, /_/   \_\__,_|\__|_| |_|
+#                      |___/
+#
+# Author: Daniel Meinicke (Laivy)
+# Support: https://laivyauth.com/support
+#
+# Don't forget to try the LaivyAuth Bot! :)
+# https://laivyauth.com/bot
+
+# Sets the debug state of the plugin.
+# If true, the plugin will send detailed logs that may
+# be useful for developers to see exactly what's happening at the plugin.
+debug: false
+
+metrics:
+
+  # Gives permission to the LaivyAuth's systems display your server address, icon, player amount
+  # and some others non-sensitive information at the website, discord or any other official channel
+  #
+  # This feature DO NOT have any impact at server performance, and it's just for public metrics.
+  # Leaving this option as false will block LaivyAuth from recognize the server officially as a "costumer" publicly
+  #
+  # You can control what is displayed publicly at the LaivyAuth's official website
+  public visibility: true
+
+# When this option is enabled, nicknames with the same characters but differing
+# in case (uppercase or lowercase) will be considered identical.
+#
+# For example, if there is an account created with the nickname "Laivy"
+# attempting to connect with the nickname "laivy":
+# The plugin will prevent the user from proceeding with connection and authentication,
+# ordering the player to change the nickname to "Laivy" again.
+#
+# The native notchian (vanilla) minecraft servers disable this as default.
+# Keeping this as true if strongly recommended then, it avoids a lot of issues.
+#
+# If you want to change this, it's strongly recommended to reset the plugin's database and
+# all the server's player list first, to avoid players losing their accounts.
+case sensitive nicknames: true
+
+# Stops the server if an error occurs while loading the plugin.
+# You don't want your server running without the authentication system, trust me.
+stop server if fails: true
+
+# This option stores all the database into the RAM on load-up the server.
+# It's not recommended for servers with a high number of players base (like +100K).
+# When false, this option takes some more time to authenticate the users and retrieve
+# some other information because it will need to load it from the disk first.
+buffered database: true
+
+# This is the maximum amount of accounts per address, players will be blocked registering
+# if the number of accounts using the address was overpassed
+#
+# This option could be set as '0', so it will allow unlimited accounts per address
+maximum registered accounts per ip: 0
+
+# This is the maximum amount of accounts per address authenticated, players will be blocked joining
+# the server if the number of authenticated players using the address was overpassed
+#
+# This option could be set as '0', so it will allow unlimited authenticated players per address
+maximum authenticated accounts per ip: 3
+
+# The weak passwords check
+weak passwords:
+
+  # Marking this as true, will enable the weak password check
+  enabled: true
+
+  # This is the similarity amount a password must have with one of the 'weak passwords.txt' file
+  # to be considered as weak and be blocked automatically, using a higher similarity percentage
+  # will make a lot of passwords (even the strongers) considered as weak
+  similarity to block: 20%
+
+unauthenticated:
+  # The time in seconds the player must authenticate
+  # or will get kicked due to timeout
+  timeout: 120
+
+  # Controls the unauthenticated player's movement
+  movement:
+
+    # You can control the radius in blocks between the spawn point the player
+    # could freely move, it the player goes away from this radius, they'll be blocked
+    # from moving. If this is set to '0', the player will not be able to move
+    radius: 0
+
+    # If false, the player will not be able to jump
+    allow jumps: false
+
+  # It controls the player's visibility by their own selves and by another players
+  visilibity:
+    blindness effect: true # Causes blindness potion effect
+    invisibility effect: false # Causes invisibility potion effect
+
+    # If this is false, the player will not even get rendered to anothers players, the
+    # differences between this and the 'invisilibity' effect are:
+    #
+    # 1. Players will not receive any packets/information from the unauthenticated player
+    # 2. The unauthenticated player will not be shown at tablist (Depending on your tablist system)
+    # 3. The player will be able to see their own hands xD
+    identity: true
+
+updates:
+  # The time in minutes that the plugin should check for new mappings and plugin updates.
+  # Leave it "-1" if you want to disable the update checks
+  check: 60
+
+  # This option automatically updates the plugin to the latest version available.
+  automatic for plugin: true
+
+  # This option automatically updates the mappings to the latest version available.
+  # Note only the mappings with the "LaivyCodes" vendor (those created by Laivy)
+  # will be automatically updated, if you want to use a custom LaivyCodes mapping, you must
+  # set this option as false or the auto-updater probably will override your custom mapping.
+  automatic for mappings: true
+
+premium automatic auth:
+  # When enabled, premium users will not need to authenticate using commands.
+  # The plugin differentiates between premium and cracked users as follows:
+  # 1. The client attempts to connect to the server.
+  # 2. The server sends a message prompting the client to reconnect.
+  # 3. The player must reconnect for verification.
+  #    - If the verification process fails, the client is considered a cracked user and must enter a password.
+  #    - If the verification process is successful, the player is considered a premium user and will not need to enter a password for future logins, provided they use a premium account.
+  # Note this feature will make the server online-mode=true, but cracked users still can join.
+  enabled: true
+
+  # The time in seconds the player should reconnect after the "Reconnect Once More" message. If the
+  # player doesn't reconnect after this time, it will show the "Reconnect Once More" message again
+  reconnect timeout: 60
+
+whitelist:
+  # If false, cracked users (those who are using unauthorized copies of the game) will not be able to join the server.
+  # This helps prevent unauthorized access and maintain server integrity.
+  # Useful when you need to block cracked users temporarily or just want to use
+  # our amazing and wonderful authentication plugin without necessarily having cracked users.
+  # For api purposes as example.
+  allow cracked users: true
+
+  # Here you can block some protocol versions to join the server.
+  # That will prevent clients from connecting with unwanted client versions.
+  # Here's the full versions list: https://minecraft.wiki/w/Protocol_version
+  block protocol versions:
+  #  - 767 # This blocks the 1.21 and 1.12.1
+  #  - 766 # This blocks the 1.20.5 and 1.20.6
+
+captchas:
+
+  # If true, the players will need to solve a challenge to process authentication
+  # This is extremely useful to prevent Bots
+  enabled: false
+
+  # The captcha will only be requested for the groups of this option, it's recommended
+  # to leave this just for the default group, it's not too necessary make VIPs (As example) players
+  # perform the captcha verification, since it's already a "trusted" player.
+  restricted for groups:
+    #- default
+
+  # A random challenge of this option will be chosen to the player
+  # It's recommended to leave a lot of challenges to make it harder
+  # to create macros and bots to overpass those challenges
+  challenges:
+
+    # Players must select a correct item from a menu.
+    # this option is disabled by default because it's not too hard to bypass with alternative systems
+    # and may be hard for some "noob" players
+    #- SELECT_CORRECT_ITEM
+
+    # The player should click at the correct color at the chat
+    # It's a noob friendly challenge, but not too hard to bypass with alternative systems.
+    - CHAT_COLOR_MATCH
+
+    # Players must read a fu**ing QR-Code displayed at the chat to join the server.
+    # I've created this as a meme. It's not recommended to use this challenge
+    # since some players would not have a near camera (cellphone) to read it, and it's
+    # a bit easy to bypass this with alternative systems.
+    #- QR_CODE
+
+two factor access:
+
+  enabled: true
+
+  # The allowed two factor access methods, the player will be able to security their accounts with
+  # all the available methods here
+  methods:
+    # Using LaivyAuth's Bot, it will send a direct-message to the player's discord account and the
+    # player should confirm authentication to proceed
+    - DISCORD
+
+    # The player should authenticate using the LaivyAuth's website and confirm
+    # to procceed authentication
+    - WEBSITE
+
+acocunt recovery:
+
+  # If true, the players will be able to recovery their passwords during the authentication
+  # process, it's extremely recommended to leave this enabled
+  enabled: true
+
+  # The allowed recovery methods, the player will be able to change their passwords using
+  # all those allowed methods
+  methods:
+    # There's no need setup for this method, but you can edit advanced settings like SMTP or POP3 email server
+    # if you want a custom e-mail server with your server's domain at the LaivyAuth's Website Panel
+    - EMAIL # Will send a recovery code e-mail to player (if the e-mail is set)
+
+    # A direct-message will be sent to the player's discord account using the LaivyAuth's Discord Bot
+    # Your discord server must have the LaivyAuth's Discord Bot configured, and the player must be
+    # a verified user by the bot
+    - DISCORD
+
+    # The players will be able to generate a secret code that could be used later to recovery
+    # their accounts
+    - SECRET_CODE
+
+emails:
+
+  # Defines if the players should be forced to enter an e-mail to authenticate,
+  # you should consider change this option to 'true', it's safer, and you'll have
+  # a lead to announce your marketing offers :)
+  required: true
+
+# This option is for plgins like Oraxen or ItemsAdder that sends the resource pack automaticaly for the player
+resourcepacks:
+
+  # This configuration will make the pack only send the texture to the player after authentication
+  # It's recommended to leave this option as 'true'
+  send only when auth: true
