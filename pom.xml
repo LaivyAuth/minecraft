@@ -10,8 +10,12 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>core</module>
+        <module>bukkit</module>
         <module>v1_20_R1</module>
+        <module>api</module>
+        <module>utilities</module>
+        <module>plugin</module>
+        <module>v1_20_R2</module>
     </modules>
 
     <properties>
@@ -21,6 +25,13 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>codes.laivy</groupId>
+            <artifactId>java-address</artifactId>
+            <version>1.2.1</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -41,7 +52,21 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>24.0.1</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+            <scope>provided</scope>
+
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
