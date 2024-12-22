@@ -1,4 +1,4 @@
-package codes.laivy.auth.bukkit;
+package codes.laivy.auth.utilities.resources;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;

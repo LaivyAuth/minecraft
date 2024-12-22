@@ -12,6 +12,6 @@ public interface Activity {
     @NotNull Instant getJoinDate();
     @NotNull Instant getQuitDate();
 
-    @NotNull Integer getVersion();
+    int getVersion();
 
 }

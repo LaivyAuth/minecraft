@@ -3,6 +3,7 @@ package codes.laivy.auth.bukkit;
 import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.bukkit.impl.AuthenticationCommands;
 import codes.laivy.auth.bukkit.impl.SpigotListener;
+import codes.laivy.auth.utilities.resources.Mappings;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;

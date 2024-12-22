@@ -1,4 +1,4 @@
-package codes.laivy.auth.bukkit;
+package codes.laivy.auth.utilities.resources;
 
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +21,7 @@ public class Resources {
     // Static initializers
 
     public static @NotNull Map<@NotNull String, @NotNull InputStream> getResourceFiles(@NotNull String path) throws URISyntaxException, IOException {
-        @NotNull URL url = Objects.requireNonNull(LaivyAuth.class.getResource(path), "cannot find path '" + path + "'");
+        @NotNull URL url = Objects.requireNonNull(Resources.class.getResource(path), "cannot find path '" + path + "'");
         @NotNull Map<@NotNull String, @NotNull InputStream> map = new HashMap<>();
 
         if (path.startsWith("/")) {
@@ -41,6 +41,7 @@ public class Resources {
                     @NotNull String name = entry.getName().replaceFirst(path, "");
 
                     if (!entry.isDirectory()) {
+                        // todo: remove this apache IOUtils#toByteArray
                         @NotNull InputStream stream = new ByteArrayInputStream(IOUtils.toByteArray(jarFile.getInputStream(entry)));
                         map.put(name, stream);
                     }

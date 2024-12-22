@@ -36,7 +36,7 @@ final class ConfigurationImpl implements Configuration {
 
         // Read configuration file
         this.debug = yaml.getBoolean("debug", false);
-        this.caseSensitiveNicknames = yaml.getBoolean("case sensitive nicknames", true);
+        this.caseSensitiveNicknames = yaml.getBoolean("case-sensitive nicknames", true);
         this.stopServerIfFails = yaml.getBoolean("stop server if fails", true);
         this.bufferedDatabase = yaml.getBoolean("buffered database", true);
 

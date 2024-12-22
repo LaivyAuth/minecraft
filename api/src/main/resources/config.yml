@@ -40,7 +40,7 @@ metrics:
 #
 # If you want to change this, it's strongly recommended to reset the plugin's database and
 # all the server's player list first, to avoid players losing their accounts.
-case sensitive nicknames: true
+case-sensitive nicknames: true
 
 # Stops the server if an error occurs while loading the plugin.
 # You don't want your server running without the authentication system, trust me.
@@ -56,7 +56,7 @@ buffered database: true
 # if the number of accounts using the address was overpassed
 #
 # This option could be set as '0', so it will allow unlimited accounts per address
-maximum registered accounts per ip: 0
+maximum registered accounts per ip: 5
 
 # This is the maximum amount of accounts per address authenticated, players will be blocked joining
 # the server if the number of authenticated players using the address was overpassed
@@ -222,6 +222,8 @@ emails:
   # Defines if the players should be forced to enter an e-mail to authenticate,
   # you should consider change this option to 'true', it's safer, and you'll have
   # a lead to announce your marketing offers :)
+  #
+  # If false, players will still be able to set an e-mail, but not a mandatory thing.
   required: true
 
 # This option is for plgins like Oraxen or ItemsAdder that sends the resource pack automaticaly for the player
