@@ -1,0 +1,65 @@
+# This is the native english messages file, you can customize a lot of plugin messages here
+# You can also use some placeholders described in each message's comments
+
+prefix: "&f&lʟᴀɪᴠʏ &b&lᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ"
+
+# When a player try to join the server with an account that already is playing (authenticated or not)
+# the connection will be blocked and this message will be returned.
+#
+# Message Type: Disconnect Screen
+# Prefixes:
+#   - %prefix% * The plug-in's prefix
+#   - %nickname% * The nickname used to connect
+prevent double join error: "%prefix%\n\n&cThere's already a player with nickname %nickname% playing at this moment.\n&cIf you're the original owner of this account, you can access the LaivyAuth's website and manually disconnect."
+
+# When a player try to connect with the nickname 'AbC' but there's already an account 'Abc', the player will be
+# disconnected. This message will only be displayed if the configuration "case-sensitive nicknames" is true.
+#
+# Message Type: Disconnect Screen
+# Prefixes:
+#   - %prefix% * The plug-in's prefix
+#   - %current_nickname% * The nickname used to connect
+#   - %account_nickname% * The nickname that should be used
+nickname case sensitive error: "%prefix%\n\n&cYou cannot use the nickname '%current_nickname%' to connect this server because there's an account with the nickname '%account_nickname%' already registered, it's case-sensitive!"
+
+# Messages from the 'premium automatic auth' section at the configuration file
+premium authentication:
+
+  # When a cracked client try to log in to a premium account.
+  # Only if the configuration 'premium automatic auth' is enabled
+  #
+  # Message Type: Disconnect Screen
+  # Prefixes:
+  #   - %prefix% * The plug-in's prefix
+  #   - %nickname% * The nickname used to connect
+  premium account required error: "%prefix%\n\n&cYou cannot join the account %nickname% using a cracked client!\n&cIf you're already using a premium client, try to restart the game."
+
+  # When the premium automatic authentication is enabled, the players will receive the "account verified" message at the first
+  # attempt to join the server, that message is important to notify cracked users that they MUST reconnect if got the "Failed to log in: ..." message
+  # This message will be displayed only if the configuration 'premium automatic auth' is enabled
+  #
+  # Message Type: Disconnect Screen
+  # Prefixes:
+  #   - %prefix% * The plug-in's prefix
+  #   - %nickname% * The nickname used to connect
+  account verified: "%prefix%\n\n&c&7Account successfully verified!\n&7Please reconnect again at the server...\n\n&8You may get kicked due \"&cFailed to log in: ...&8\", reconnect once more, it's normal!"
+
+whitelist:
+
+  # This message is displayed if the version used by the client isn't allowed
+  #
+  # Message Type: Disconnect Screen
+  # Prefixes:
+  #   - %prefix% * The plug-in's prefix
+  #   - %version% * The version used to connect
+  blocked version: "%prefix%\n\n&cYou cannot join the server using the version %version%."
+
+  # This message is displayed if a cracked client tries to join the server and
+  # the configuration 'whitelist.allow cracked users' is false
+  #
+  # Message Type: Disconnect Screen
+  # Prefixes:
+  #   - %prefix% * The plug-in's prefix
+  #   - %nickname% * The nickname used to connect
+  #   - %uuid% * The uuid used to connect
+  cracked users not allowed: "%prefix%\n\n&cThis server does only accepts premium minecraft users."
