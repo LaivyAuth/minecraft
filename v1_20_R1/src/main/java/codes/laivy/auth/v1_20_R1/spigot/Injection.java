@@ -2,6 +2,8 @@ package codes.laivy.auth.v1_20_R1.spigot;
 
 import codes.laivy.auth.account.Account;
 import codes.laivy.auth.account.Account.Type;
+import codes.laivy.auth.utilities.messages.PluginMessages;
+import codes.laivy.auth.utilities.messages.PluginMessages.Placeholder;
 import codes.laivy.auth.utilities.netty.NettyInjection;
 import codes.laivy.auth.v1_20_R1.Main;
 import com.mojang.authlib.GameProfile;
@@ -279,23 +281,32 @@ public final class Injection implements Flushable {
                     return message;
                 }
 
+                // Retrive version (int)
+                int version = packet.c();
+
                 // Add the version to the map
-                versions.put(channel, packet.c());
+                versions.put(channel, version);
             } else if (message instanceof @NotNull PacketLoginInStart start) { // Create profile for channel
+                // Check version
+                if (Arrays.stream(getConfiguration().getWhitelist().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
+                    // todo: version
+                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a(PluginMessages.getMessage("whitelist.blocked version", Placeholder.PREFIX, new Placeholder("version", "???"))));
+                    channel.close();
+                    return null;
+                }
+
                 // Start attempt
                 @NotNull String nickname = start.a();
                 @Nullable UUID uuid = start.c().orElse(null);
 
                 // Check if there's already a user playing with that nickname
                 if (Bukkit.getOnlinePlayers().stream().anyMatch(player -> player.getName().equals(nickname))) {
-                    // todo: message.yml
-                    return new PacketLoginOutDisconnect(IChatBaseComponent.a("prevent double join"));
+                    return new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("prevent double join error", Placeholder.PREFIX, new Placeholder("nickname", nickname))));
                 }
 
                 @Nullable Account nicknameAccount = getApi().getAccount(nickname).orElse(null);
                 if (nicknameAccount != null && !nicknameAccount.getName().equals(nickname)) {
-                    // todo: message.yml
-                    return new PacketLoginOutDisconnect(IChatBaseComponent.a("nickname case sensitive"));
+                    return new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("nickname case sensitive error", Placeholder.PREFIX, new Placeholder("nickname", nickname))));
                 }
 
                 // Retrieve account
@@ -312,6 +323,11 @@ public final class Injection implements Flushable {
                 } else {
                     account = nicknameAccount;
                     attempt = getAttempt(nickname).orElse(null);
+                }
+
+                // Check cracked
+                if (!checkCracked(channel, attempt, account)) {
+                    return null;
                 }
 
                 // Create or retrieve existent attempt
@@ -347,12 +363,14 @@ public final class Injection implements Flushable {
 
                     try {
                         if (!begin.a(encryption, privatekey)) {
+                            // todo: improve this exception
                             throw new IllegalStateException("Protocol error");
                         } else {
                             @NotNull SecretKey secretkey = begin.a(privatekey);
                             secret = (new BigInteger(MinecraftEncryption.a("", server.L().getPublic(), secretkey))).toString(16);
                         }
                     } catch (@NotNull CryptographyException exception) {
+                        // todo: improve this exception
                         throw new IllegalStateException("Protocol error", exception);
                     }
 
@@ -368,7 +386,7 @@ public final class Injection implements Flushable {
                         Main.log.atDebug().setCause(throwable).log();
                     } else try {
                         if (account != null && account.getType() == Type.PREMIUM) {
-                            listener.b(IChatBaseComponent.a("premium account required"));
+                            listener.b(IChatBaseComponent.a(PluginMessages.getMessage("premium authentication.premium account required error", Placeholder.PREFIX, new Placeholder("nickname", attempt.getNickname()))));
                             return null;
                         }
 
@@ -417,8 +435,7 @@ public final class Injection implements Flushable {
                     // Check if the attempt type is null
                     if (attempt.getType() == null) {
                         if (attempt.reconnect()) { // Tell the player to reconnect
-                            // todo: message.yml
-                            return new PacketLoginOutDisconnect(IChatBaseComponent.a("premium accounts.account verified"));
+                            return new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("premium authentication.account verified", Placeholder.PREFIX, new Placeholder("nickname", attempt.getNickname()))));
                         }
                     } else if (attempt.getType() == Type.CRACKED) {
                         try {
@@ -439,28 +456,18 @@ public final class Injection implements Flushable {
                     }
                 }
             } else if (message instanceof PacketLoginOutSuccess) {
-                if (Arrays.stream(getConfiguration().getWhitelist().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
-                    // todo: message.yml
-                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("whitelist.blocked version"));
-                    return null;
-                } else if (!getConfiguration().getWhitelist().isAllowCrackedUsers()) {
-                    // todo: message.yml
-                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a("whitelist.cracked users"));
-                    return null;
-                } else {
-                    @NotNull Attempt attempt = getAttempt(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's attempt"));
+                @NotNull Attempt attempt = getAttempt(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's attempt"));
 
-                    if (attempt.getUniqueId() == null) {
-                        throw new IllegalStateException("the user hasn't been successfully identified");
-                    }
+                if (attempt.getUniqueId() == null) {
+                    throw new IllegalStateException("the user hasn't been successfully identified");
+                }
 
-                    try {
-                        @NotNull Account account = attempt.getAccount() != null ? attempt.getAccount() : getApi().getOrCreate(attempt.getUniqueId(), attempt.getNickname());
-                        account.setType(attempt.getType());
-                        account.setName(attempt.getNickname());
-                    } finally {
-                        attempt.flush();
-                    }
+                try {
+                    @NotNull Account account = attempt.getAccount() != null ? attempt.getAccount() : getApi().getOrCreate(attempt.getUniqueId(), attempt.getNickname());
+                    account.setType(attempt.getType());
+                    account.setName(attempt.getNickname());
+                } finally {
+                    attempt.flush();
                 }
             }
 
@@ -560,6 +567,15 @@ public final class Injection implements Flushable {
                 throw new RuntimeException("cannot fire events", e);
             }
         }
+    }
+
+    private boolean checkCracked(@NotNull Channel channel, @Nullable Attempt attempt, @Nullable Account account) {
+        if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Type.CRACKED) && (attempt != null && attempt.getType() == Type.CRACKED)) {
+            ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a(PluginMessages.getMessage("whitelist.cracked users not allowed", Placeholder.PREFIX, new Placeholder("nickname", attempt.getNickname()), new Placeholder("uuid", String.valueOf(attempt.getUniqueId())))));
+            return false;
+        }
+
+        return true;
     }
 
 }
