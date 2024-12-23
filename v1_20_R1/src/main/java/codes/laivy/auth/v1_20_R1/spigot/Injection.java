@@ -396,6 +396,11 @@ public final class Injection implements Flushable {
                         attempt.setUniqueId(getListenerProfile(listener).getId());
                         attempt.setType(Type.CRACKED);
 
+                        // Check cracked
+                        if (!checkCracked(channel, attempt, account)) {
+                            return null;
+                        }
+
                         // Encryptor and Decryptor
                         @NotNull SecretKey secretkey = begin.a(privatekey);
                         @NotNull Cipher cipher = MinecraftEncryption.a(2, secretkey);
@@ -570,8 +575,8 @@ public final class Injection implements Flushable {
     }
 
     private boolean checkCracked(@NotNull Channel channel, @Nullable Attempt attempt, @Nullable Account account) {
-        if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Type.CRACKED) && (attempt != null && attempt.getType() == Type.CRACKED)) {
-            ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a(PluginMessages.getMessage("whitelist.cracked users not allowed", Placeholder.PREFIX, new Placeholder("nickname", attempt.getNickname()), new Placeholder("uuid", String.valueOf(attempt.getUniqueId())))));
+        if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Type.CRACKED) || (attempt != null && attempt.getType() == Type.CRACKED)) {
+            ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a(PluginMessages.getMessage("whitelist.cracked users not allowed", Placeholder.PREFIX, new Placeholder("nickname", (attempt != null ? attempt.getNickname() : account.getName())), new Placeholder("uuid", String.valueOf((attempt != null ? attempt.getUniqueId() : account.getUniqueId()))))));
             return false;
         }
 

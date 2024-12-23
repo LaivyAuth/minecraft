@@ -5,18 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="76d35d64-16ae-43b5-aece-0e7c1c254630" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/api/src/main/resources/messages/en-us.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utilities/src/main/java/codes/laivy/auth/utilities/messages/PluginMessages.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/account/Activity.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/account/Activity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/src/main/resources/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/resources/config.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/src/main/resources/messages/en_us.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/LaivyAuth.java" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/LaivyAuth.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/Mappings.java" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/src/main/java/codes/laivy/auth/utilities/resources/Mappings.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/Resources.java" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/src/main/java/codes/laivy/auth/utilities/resources/Resources.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/ConfigurationImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/ConfigurationImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bukkit/src/main/resources/plugin.yml" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/resources/plugin.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utilities/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/src/main/resources/messages/en-us.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/resources/messages/en-us.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Injection.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Injection.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

@@ -62,4 +62,4 @@ whitelist:
   #   - %prefix% * The plug-in's prefix
   #   - %nickname% * The nickname used to connect
   #   - %uuid% * The uuid used to connect
-  cracked users not allowed: "%prefix%\n\n&cThis server does only accepts premium minecraft users."
+  cracked users not allowed: "%prefix%\n\n&cThis server does only accepts premium minecraft users.\n\n&7If you're using a premium account, access the LaivyAuth website and switch the account type at the panel."
