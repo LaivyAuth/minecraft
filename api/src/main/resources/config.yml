@@ -133,6 +133,18 @@ premium automatic auth:
   # player doesn't reconnect after this time, it will show the "Reconnect Once More" message again
   reconnect timeout: 60
 
+authentication:
+
+  # The time in seconds the player should complete authentication (/login or /register) before get kicked
+  # by timeout with the 'authentication timeout' message. It could be zero if there's no timeout.
+  timeout: 120
+
+  # If true, even the premium players should type '/login' or '/register' commands.
+  # Note if there's already premium players accounts, switching this to true will force
+  # those premium players (without a password before) to register, not allowing
+  # the "shared accounts" feature.
+  required for premium players: false
+
 whitelist:
   # If false, cracked users (those who are using unauthorized copies of the game) will not be able to join the server.
   # This helps prevent unauthorized access and maintain server integrity.

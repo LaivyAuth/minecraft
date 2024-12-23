@@ -22,6 +22,7 @@ public interface Configuration {
     @NotNull Unauthenticated getUnauthenticated();
     @NotNull Updates getUpdates();
     @NotNull PremiumAuthentication getPremiumAuthentication();
+    @NotNull Authentication getAuthentication();
     @NotNull Whitelist getWhitelist();
     @NotNull Captchas getCaptchas();
     @NotNull TwoFactorAccess getTwoFactorAccess();
@@ -93,6 +94,12 @@ public interface Configuration {
 
         boolean isEnabled();
         @NotNull Duration getReconnectTimeout();
+
+    }
+    interface Authentication {
+
+        @NotNull Duration getTimeout();
+        boolean isRequiredForPremiumPlayers();
 
     }
     interface Whitelist {

@@ -23,6 +23,7 @@ final class ConfigurationImpl implements Configuration {
     private final @NotNull Unauthenticated unauthenticated;
     private final @NotNull Updates updates;
     private final @NotNull PremiumAuthentication premiumAuthentication;
+    private final @NotNull Authentication authentication;
     private final @NotNull Whitelist whitelist;
     private final @NotNull Captchas captchas;
     private final @NotNull TwoFactorAccess twoFactorAccess;
@@ -46,6 +47,7 @@ final class ConfigurationImpl implements Configuration {
         this.unauthenticated = new UnauthenticatedImpl(Duration.ofSeconds(yaml.getInt("unauthenticated.timeout")), new UnauthenticatedImpl.MovementImpl(yaml.getInt("unauthenticated.movement.radius"), yaml.getBoolean("unauthenticated.movement.allow jumps")), new UnauthenticatedImpl.VisibilityImpl(yaml.getBoolean("unauthenticated.visilibity.blindness effect"), yaml.getBoolean("unauthenticated.visilibity.invisibility effect"), yaml.getBoolean("unauthenticated.visilibity.identity")));
         this.updates = new UpdatesImpl(Duration.ofMinutes(yaml.getInt("updates.check")), yaml.getBoolean("updates.automatic for plugin"), yaml.getBoolean("updates.automatic for mappings"));
         this.premiumAuthentication = new PremiumAuthenticationImpl(yaml.getBoolean("premium automatic auth.enabled"), Duration.ofSeconds(yaml.getInt("premium automatic auth.reconnect timeout")));
+        this.authentication = new AuthenticationImpl(Duration.ofSeconds(yaml.getInt("authentication.timeout")), yaml.getBoolean("authentication.required for premium players"));
         this.whitelist = new WhitelistImpl(yaml.getBoolean("whitelist.allow cracked users"), ArrayUtils.toPrimitive(yaml.getIntegerList("whitelist.block protocol versions").toArray(new Integer[0])));
         this.captchas = new CaptchasImpl(yaml.getBoolean("captchas.enabled"), yaml.getStringList("captchas.restricted for groups").toArray(new String[0]), yaml.getStringList("captchas.challenges").toArray(new String[0]));
         this.twoFactorAccess = new TwoFactorAccessImpl(yaml.getBoolean("two factor access.enabled"), yaml.getStringList("two factor access.methods").toArray(new String[0]));
@@ -96,6 +98,10 @@ final class ConfigurationImpl implements Configuration {
     @Override
     public @NotNull PremiumAuthentication getPremiumAuthentication() {
         return premiumAuthentication;
+    }
+    @Override
+    public @NotNull Authentication getAuthentication() {
+        return authentication;
     }
     @Override
     public @NotNull Whitelist getWhitelist() {
@@ -312,6 +318,10 @@ final class ConfigurationImpl implements Configuration {
         public PremiumAuthenticationImpl(boolean enabled, @NotNull Duration reconnectTimeout) {
             this.enabled = enabled;
             this.reconnectTimeout = reconnectTimeout;
+
+            if (reconnectTimeout.getSeconds() > 300 || reconnectTimeout.getSeconds() < 15) {
+                throw new IllegalStateException("the 'reconnect timeout' configuration must be between 15 and 300 seconds");
+            }
         }
 
         // Getters
@@ -323,6 +333,28 @@ final class ConfigurationImpl implements Configuration {
         @Override
         public @NotNull Duration getReconnectTimeout() {
             return reconnectTimeout;
+        }
+
+    }
+    private static final class AuthenticationImpl implements Authentication {
+
+        private final @NotNull Duration timeout;
+        private final boolean requiredForPremiumPlayers;
+
+        public AuthenticationImpl(@NotNull Duration timeout, boolean requiredForPremiumPlayers) {
+            this.timeout = timeout;
+            this.requiredForPremiumPlayers = requiredForPremiumPlayers;
+        }
+
+        // Getters
+
+        @Override
+        public @NotNull Duration getTimeout() {
+            return timeout;
+        }
+        @Override
+        public boolean isRequiredForPremiumPlayers() {
+            return requiredForPremiumPlayers;
         }
 
     }
