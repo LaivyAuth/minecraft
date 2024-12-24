@@ -326,7 +326,7 @@ final class Injection implements Flushable {
                     @NotNull Identifier identifier = identifiers.get(nicknames.get(channel));
 
                     try {
-                        @NotNull Account account = getApi().getOrCreate(identifier.uuid, identifier.getName());
+                        @NotNull Account account = getApi().getOrCreate(identifier.getUniqueId(), identifier.getName());
                         account.setType(identifier.getType());
                     } finally {
                         identifier.flush();
@@ -365,6 +365,7 @@ final class Injection implements Flushable {
 
                         // Get unique id
                         @NotNull UUID uuid = PlayerReflections.getListenerProfile(listener).getId();
+                        System.out.println("UUID Generated 1: " + uuid);
 
                         // Set on account
                         getApi().getOrCreate(uuid, nickname).setType(Type.CRACKED);

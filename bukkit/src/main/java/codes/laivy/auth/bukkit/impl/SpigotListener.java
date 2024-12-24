@@ -43,6 +43,7 @@ public final class SpigotListener implements Listener {
     }
     @EventHandler(priority = EventPriority.LOW)
     private void join(@NotNull PlayerJoinEvent e) {
+        System.out.println("UUID current: " + e.getPlayer().getUniqueId());
         @NotNull Account data = LaivyAuth.getApi().getAccount(e.getPlayer().getUniqueId()).orElseThrow(() -> new NullPointerException("cannot find the account for player '" + e.getPlayer().getName() + "'"));
 
         if (data.getType() == Account.Type.PREMIUM) {

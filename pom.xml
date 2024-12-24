@@ -10,11 +10,12 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>bukkit</module>
-        <module>v1_20_R1</module>
         <module>api</module>
         <module>utilities</module>
+        <module>bukkit</module>
         <module>plugin</module>
+
+        <module>v1_20_R1</module>
         <module>v1_20_R2</module>
     </modules>
 

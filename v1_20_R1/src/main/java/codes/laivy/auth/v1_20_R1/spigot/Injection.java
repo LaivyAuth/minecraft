@@ -2,6 +2,7 @@ package codes.laivy.auth.v1_20_R1.spigot;
 
 import codes.laivy.auth.account.Account;
 import codes.laivy.auth.account.Account.Type;
+import codes.laivy.auth.platform.Protocol;
 import codes.laivy.auth.utilities.messages.PluginMessages;
 import codes.laivy.auth.utilities.messages.PluginMessages.Placeholder;
 import codes.laivy.auth.utilities.netty.NettyInjection;
@@ -141,6 +142,10 @@ public final class Injection implements Flushable {
             synchronized (lock) {
                 attemptsByChannel.put(channel, this);
                 attemptsByNickname.put(nickname, this);
+
+                if (account != null) {
+                    attemptsByUniqueId.put(account.getUniqueId(), this);
+                }
             }
         }
 
@@ -252,11 +257,11 @@ public final class Injection implements Flushable {
         public boolean equals(@Nullable Object object) {
             if (this == object) return true;
             if (!(object instanceof Attempt attempt)) return false;
-            return Objects.equals(getNickname(), attempt.getNickname()) && Objects.equals(uuid, attempt.uuid);
+            return Objects.equals(getNickname(), attempt.getNickname()) && Objects.equals(getUniqueId(), attempt.getUniqueId());
         }
         @Override
         public int hashCode() {
-            return Objects.hash(getNickname(), uuid);
+            return Objects.hash(getNickname(), getUniqueId());
         }
 
     }
@@ -287,17 +292,17 @@ public final class Injection implements Flushable {
                 // Add the version to the map
                 versions.put(channel, version);
             } else if (message instanceof @NotNull PacketLoginInStart start) { // Create profile for channel
+                int version = versions.get(channel);
+
                 // Check version
-                if (Arrays.stream(getConfiguration().getWhitelist().getBlockedVersions()).anyMatch(blocked -> blocked == versions.get(channel))) {
-                    // todo: version
-                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a(PluginMessages.getMessage("whitelist.blocked version", Placeholder.PREFIX, new Placeholder("version", "???"))));
+                if (Arrays.stream(getConfiguration().getWhitelist().getBlockedVersions()).anyMatch(blocked -> blocked == version)) {
+                    ((LoginListener) (getNetworkManager(channel)).j()).b(IChatBaseComponent.a(PluginMessages.getMessage("whitelist.blocked version", Placeholder.PREFIX, new Placeholder("version", Protocol.getByProtocol(version).getName()))));
                     channel.close();
                     return null;
                 }
 
                 // Start attempt
                 @NotNull String nickname = start.a();
-                @Nullable UUID uuid = start.c().orElse(null);
 
                 // Check if there's already a user playing with that nickname
                 if (Bukkit.getOnlinePlayers().stream().anyMatch(player -> player.getName().equals(nickname))) {
@@ -313,17 +318,8 @@ public final class Injection implements Flushable {
                 @Nullable Account account;
                 @Nullable Attempt attempt;
 
-                if (uuid != null) {
-                    account = getApi().getAccount(uuid).orElse(null);
-                    attempt = getAttempt(uuid).orElse(null);
-
-                    if (nicknameAccount != null && !nicknameAccount.getUniqueId().equals(uuid)) {
-                        account = nicknameAccount;
-                    }
-                } else {
-                    account = nicknameAccount;
-                    attempt = getAttempt(nickname).orElse(null);
-                }
+                account = nicknameAccount;
+                attempt = getAttempt(nickname).orElse(null);
 
                 // Check cracked
                 if (!checkCracked(channel, attempt, account)) {
@@ -333,13 +329,11 @@ public final class Injection implements Flushable {
                 // Create or retrieve existent attempt
                 if (attempt != null) {
                     attempt.setChannel(channel);
-                    Main.log.info("Connection attempt '{}' with uuid '{}' reconnected.", nickname, uuid);
+                    Main.log.trace("Connection attempt '{}' reconnected.", attempt.getNickname());
                 } else {
                     attempt = new Attempt(channel, nickname, account);
-                    Main.log.info("Started new connection attempt '{}' with uuid '{}'.", nickname, uuid);
+                    Main.log.trace("Started new connection attempt '{}'.", attempt.getNickname());
                 }
-
-                attempt.setUniqueId(uuid);
 
                 // Verify account
             } else if (message instanceof @NotNull PacketLoginInEncryptionBegin begin) {
@@ -363,15 +357,13 @@ public final class Injection implements Flushable {
 
                     try {
                         if (!begin.a(encryption, privatekey)) {
-                            // todo: improve this exception
-                            throw new IllegalStateException("Protocol error");
+                            throw new IllegalStateException("encryption arrays are not equals");
                         } else {
                             @NotNull SecretKey secretkey = begin.a(privatekey);
                             secret = (new BigInteger(MinecraftEncryption.a("", server.L().getPublic(), secretkey))).toString(16);
                         }
                     } catch (@NotNull CryptographyException exception) {
-                        // todo: improve this exception
-                        throw new IllegalStateException("Protocol error", exception);
+                        throw new IllegalStateException("cannot proceed with the cryptography", exception);
                     }
 
                     // Check if the session was successful
@@ -391,7 +383,12 @@ public final class Injection implements Flushable {
                         }
 
                         // Initialize
+                        @NotNull GameProfile profile = getListenerProfile(listener);
                         listener.initUUID();
+
+                        if (profile.getId() == null) {
+                            throw new IllegalStateException("cannot retrieve cracked user's unique id");
+                        }
 
                         attempt.setUniqueId(getListenerProfile(listener).getId());
                         attempt.setType(Type.CRACKED);
@@ -452,8 +449,13 @@ public final class Injection implements Flushable {
                             enumField.set(listener, enumObject);
 
                             listener.initUUID();
-                            new FireEventsThread(attempt, listener).start();
 
+                            // Set the attempt's unique id
+                            @NotNull GameProfile profile = getListenerProfile(listener);
+                            attempt.setUniqueId(profile.getId());
+
+                            // Fire the events
+                            new FireEventsThread(attempt, listener).start();
                             return null;
                         } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException | @NotNull ClassNotFoundException e) {
                             throw new RuntimeException("cannot finish cracked user authentication", e);
@@ -468,6 +470,8 @@ public final class Injection implements Flushable {
                 }
 
                 try {
+                    System.out.println("UUID Generated 1: " + attempt.getUniqueId());
+
                     @NotNull Account account = attempt.getAccount() != null ? attempt.getAccount() : getApi().getOrCreate(attempt.getUniqueId(), attempt.getNickname());
                     account.setType(attempt.getType());
                     account.setName(attempt.getNickname());
@@ -526,6 +530,10 @@ public final class Injection implements Flushable {
 
         @Override
         protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) throws IOException {
+            @NotNull Channel channel = context.channel();
+            channel.write(new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("authentication error", Placeholder.PREFIX))));
+
+            // todo: exception logging at '/exception-reports' folder
             cause.printStackTrace();
         }
 
