@@ -50,7 +50,7 @@ final class ConfigurationImpl implements Configuration {
         this.authentication = new AuthenticationImpl(Duration.ofSeconds(yaml.getInt("authentication.timeout")), yaml.getBoolean("authentication.required for premium players"));
         this.whitelist = new WhitelistImpl(yaml.getBoolean("whitelist.allow cracked users"), ArrayUtils.toPrimitive(yaml.getIntegerList("whitelist.block protocol versions").toArray(new Integer[0])));
         this.captchas = new CaptchasImpl(yaml.getBoolean("captchas.enabled"), yaml.getStringList("captchas.restricted for groups").toArray(new String[0]), yaml.getStringList("captchas.challenges").toArray(new String[0]));
-        this.twoFactorAccess = new TwoFactorAccessImpl(yaml.getBoolean("two factor access.enabled"), yaml.getStringList("two factor access.methods").toArray(new String[0]));
+        this.twoFactorAccess = new TwoFactorAccessImpl(yaml.getBoolean("two factor access.enabled"), yaml.getStringList("two factor access.methods").toArray(new String[0]), yaml.getStringList("two factor access.required for groups").toArray(new String[0]));
         this.accountRecovery = new AccountRecoveryImpl(yaml.getBoolean("acocunt recovery.enabled"), yaml.getStringList("acocunt recovery.methods").toArray(new String[0]));
         this.emails = new EmailsImpl(yaml.getBoolean("emails.required"));
         this.resourcePacks = new ResourcePacksImpl(yaml.getBoolean("resourcepacks.send only when auth"));
@@ -413,10 +413,12 @@ final class ConfigurationImpl implements Configuration {
 
         private final boolean enabled;
         private final @NotNull String @NotNull [] methods;
+        private final @NotNull String @NotNull [] requiredForGroups;
 
-        public TwoFactorAccessImpl(boolean enabled, @NotNull String @NotNull [] methods) {
+        public TwoFactorAccessImpl(boolean enabled, @NotNull String @NotNull [] methods, String @NotNull [] requiredForGroups) {
             this.enabled = enabled;
             this.methods = methods;
+            this.requiredForGroups = requiredForGroups;
         }
 
         // Getters
@@ -428,6 +430,10 @@ final class ConfigurationImpl implements Configuration {
         @Override
         public @NotNull String @NotNull [] getMethods() {
             return methods;
+        }
+        @Override
+        public @NotNull String @NotNull [] getRequiredForGroups() {
+            return requiredForGroups;
         }
 
     }

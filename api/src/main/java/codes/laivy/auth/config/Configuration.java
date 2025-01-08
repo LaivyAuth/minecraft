@@ -119,6 +119,7 @@ public interface Configuration {
 
         boolean isEnabled();
         @NotNull String @NotNull [] getMethods();
+        @NotNull String @NotNull [] getRequiredForGroups();
 
     }
     interface AccountRecovery {

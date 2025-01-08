@@ -207,6 +207,15 @@ two factor access:
     # to procceed authentication
     - WEBSITE
 
+  # This configuration forces all the groups listed here to have a two factor access
+  # to authenticate the server. Only if two factor access is enabled
+  required for groups:
+    - admin
+    - staff
+    - owner
+    - mod
+    - builder
+
 acocunt recovery:
 
   # If true, the players will be able to recovery their passwords during the authentication

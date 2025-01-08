@@ -6,9 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="76d35d64-16ae-43b5-aece-0e7c1c254630" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/mapping/Mapping.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/mapping/Mapping.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/platform/Version.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/platform/Version.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/config/Configuration.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/codes/laivy/auth/config/Configuration.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/src/main/resources/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/resources/config.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/ConfigurationImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/ConfigurationImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
