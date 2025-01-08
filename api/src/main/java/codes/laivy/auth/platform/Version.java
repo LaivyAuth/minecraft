@@ -7,56 +7,126 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 /**
- * This class is designed to indicate to the mappings the correct version.
- * It has verification methods to communicate with the repository accurately
- * and without the risk of causing issues.
+ * Represents a version with major and optional minor version numbers. This class provides
+ * utility methods for parsing, comparing, and creating version objects.
+ * <p>
+ * A {@code Version} object is immutable and ensures the integrity of version representation,
+ * allowing it to be used safely in various contexts. It supports version strings in the format:
+ * {@code "major"} or {@code "major.minor"}.
+ *
+ * <p><b>Examples:</b></p>
+ * <pre>{@code
+ * Version v1 = Version.parse("1");
+ * Version v2 = Version.parse("2.5");
+ * Version v3 = Version.create(3);
+ * Version v4 = Version.create(4, 2);
+ * }</pre>
+ *
+ * <p>This class implements {@link Comparable}, allowing natural ordering of versions based
+ * on their major and minor components.
  *
  * @author Daniel Meinicke (Laivy)
  * @since 1.0
  */
 public final class Version implements Comparable<Version> {
 
-    // Static initializers
+    // Static Initializers
 
     /**
-     * Creates a new Version instance with the specified major and minor version numbers.
-     * The major and minor numbers must be non-negative.
+     * Parses a version string into a {@link Version} object.
+     * <p>
+     * The input string must conform to one of the following formats:
+     * <ul>
+     *     <li>{@code "major"} - where {@code major} is a non-negative integer.</li>
+     *     <li>{@code "major.minor"} - where {@code major} and {@code minor} are non-negative integers.</li>
+     * </ul>
+     * If the format is invalid or contains negative values, an {@link IllegalArgumentException} is thrown.
      *
-     * @param major the major version number, must be non-negative
-     * @param minor the minor version number, must be non-negative
-     * @return a new Version instance with the specified major and minor numbers
-     * @throws IllegalArgumentException if the major or minor version number is negative
+     * @param string the version string to parse, must not be {@code null}.
+     * @return a {@link Version} object representing the parsed version.
+     * @throws IllegalArgumentException if the version string is invalid or has negative values.
+     */
+    public static @NotNull Version parse(@NotNull String string) {
+        @NotNull String[] parts = string.split("\\.");
+
+        if (parts.length == 1) {
+            int major = parsePart(parts[0], "major");
+            return create(major);
+        } else if (parts.length == 2) {
+            int major = parsePart(parts[0], "major");
+            int minor = parsePart(parts[1], "minor");
+            return create(major, minor);
+        } else {
+            throw new IllegalArgumentException("Invalid version format: " + string);
+        }
+    }
+
+    private static int parsePart(@NotNull String part, @NotNull String partName) {
+        try {
+            int value = Integer.parseInt(part);
+            if (value < 0) throw new NumberFormatException();
+            return value;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid " + partName + " number format, expected a non-negative integer: " + part);
+        }
+    }
+
+    /**
+     * Creates a {@link Version} instance with a major and minor version.
+     *
+     * @param major the major version, must be non-negative.
+     * @param minor the minor version, must be non-negative.
+     * @return a new {@link Version} instance.
+     * @throws IllegalArgumentException if either {@code major} or {@code minor} is negative.
      */
     @Contract(pure = true)
     public static @NotNull Version create(int major, int minor) {
         return new Version(major, minor);
     }
 
-    // Object fields
+    /**
+     * Creates a {@link Version} instance with a major version only.
+     *
+     * @param major the major version, must be non-negative.
+     * @return a new {@link Version} instance.
+     * @throws IllegalArgumentException if {@code major} is negative.
+     */
+    @Contract(pure = true)
+    public static @NotNull Version create(int major) {
+        return new Version(major);
+    }
+
+    // Fields
 
     private final int major;
-    private final int minor;
+    private final @Nullable Integer minor;
 
     /**
-     * Constructs a new Version instance with the specified major and minor version numbers.
-     * The constructor is private to enforce the use of the static create method.
+     * Constructs a {@link Version} instance.
+     * <p>
+     * This constructor is private to enforce the use of static factory methods for validation.
      *
-     * @param major the major version number
-     * @param minor the minor version number
-     * @throws IllegalArgumentException if the major or minor version number is negative
+     * @param major the major version, must be non-negative.
+     * @param minor the minor version, may be {@code null} or non-negative.
      */
-    private Version(int major, int minor) {
-        if (major < 0 || minor < 0) {
-            throw new IllegalArgumentException("illegal major/minor parameters");
+    private Version(int major, @Nullable Integer minor) {
+        if (major < 0 || (minor != null && minor < 0)) {
+            throw new IllegalArgumentException("Version components must be non-negative.");
         }
         this.major = major;
         this.minor = minor;
     }
 
+    private Version(int major) {
+        this(major, null);
+    }
+
+    // Getters
+
     /**
-     * Retrieves the major version number.
+     * Returns the major version number.
      *
-     * @return the major version number
+     * @return the major version.
      */
     @Contract(pure = true)
     public int getMajor() {
@@ -64,72 +134,83 @@ public final class Version implements Comparable<Version> {
     }
 
     /**
-     * Retrieves the minor version number.
+     * Returns the minor version number, or {@code null} if it is unspecified.
      *
-     * @return the minor version number
+     * @return the minor version, or {@code null}.
      */
     @Contract(pure = true)
-    public int getMinor() {
+    public @Nullable Integer getMinor() {
         return minor;
     }
 
-    // Comparable implementation
+    // Comparable Implementation
 
     /**
-     * Compares this Version instance with another Version instance for order.
-     * The comparison is primarily based on the major version number. If the major
-     * version numbers are equal, the minor version numbers are compared.
+     * Compares this {@link Version} to another for order.
+     * <p>
+     * Versions are compared primarily by their major components. If the major components
+     * are equal, the minor components are compared. If a minor component is {@code null},
+     * it is treated as the lowest possible value.
      *
-     * @param o the other Version instance to be compared
-     * @return a negative integer, zero, or a positive integer as this Version
-     *         is less than, equal to, or greater than the specified Version
+     * @param other the other {@link Version} to compare to.
+     * @return a negative integer, zero, or a positive integer as this version is less than,
+     * equal to, or greater than the specified version.
      */
     @Override
     @Contract(pure = true)
-    public int compareTo(@NotNull Version o) {
-        int majorComparison = Integer.compare(this.getMajor(), o.getMajor());
+    public int compareTo(@NotNull Version other) {
+        int majorComparison = Integer.compare(this.major, other.major);
         if (majorComparison != 0) {
             return majorComparison;
         }
-        return Integer.compare(this.getMinor(), o.getMinor());
+
+        return Integer.compare(
+                this.minor != null ? this.minor : Integer.MIN_VALUE,
+                other.minor != null ? other.minor : Integer.MIN_VALUE
+        );
     }
 
-    // Overridden methods
+    // Overridden Methods
 
     /**
-     * Indicates whether some other object is "equal to" this one.
-     * Two Version instances are considered equal if they have the same
-     * major and minor version numbers.
+     * Checks equality between this {@link Version} and another object.
+     * <p>
+     * Two versions are equal if they have the same major and minor components.
      *
-     * @param object the reference object with which to compare
-     * @return {@code true} if this object is the same as the object argument; {@code false} otherwise
+     * @param obj the object to compare with.
+     * @return {@code true} if the specified object is equal to this version, {@code false} otherwise.
      */
     @Override
     @Contract(pure = true)
-    public boolean equals(@Nullable Object object) {
-        if (this == object) return true;
-        if (!(object instanceof Version)) return false;
-        @NotNull Version version = (Version) object;
-        return getMajor() == version.getMajor() && getMinor() == version.getMinor();
-    }
-
-    @Override
-    @Contract(pure = true)
-    public int hashCode() {
-        return Objects.hash(getMajor(), getMinor());
+    public boolean equals(@Nullable Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Version)) return false;
+        Version other = (Version) obj;
+        return major == other.major && Objects.equals(minor, other.minor);
     }
 
     /**
-     * Returns a string representation of the object.
-     * The string representation consists of the major and minor
-     * version numbers separated by a dot.
+     * Returns the hash code for this {@link Version}.
      *
-     * @return a string representation of the object
+     * @return the hash code.
+     */
+    @Override
+    @Contract(pure = true)
+    public int hashCode() {
+        return Objects.hash(major, minor);
+    }
+
+    /**
+     * Returns a string representation of this {@link Version}.
+     * <p>
+     * The format is {@code "major"} or {@code "major.minor"} depending on whether the minor
+     * component is present.
+     *
+     * @return a string representation of this version.
      */
     @Override
     @Contract(pure = true)
     public @NotNull String toString() {
-        return getMajor() + "." + getMinor();
+        return minor != null ? major + "." + minor : String.valueOf(major);
     }
-
 }
