@@ -92,17 +92,17 @@ public enum Protocol {
     // Static initializers
 
     public static @NotNull Protocol getByProtocol(int protocol) {
-        return Arrays.stream(values()).filter(version -> version.getProtocol() == protocol).findFirst().orElseThrow(() -> new IllegalArgumentException("there's no available version with protocol '" + protocol + "'"));
+        return Arrays.stream(values()).filter(version -> version.getVersion() == protocol).findFirst().orElseThrow(() -> new IllegalArgumentException("there's no available version with protocol '" + protocol + "'"));
     }
 
     // Object
 
     private final @NotNull String name;
-    private final int protocol;
+    private final int version;
 
-    Protocol(@NotNull String name, int protocol) {
+    Protocol(@NotNull String name, int version) {
         this.name = name;
-        this.protocol = protocol;
+        this.version = version;
     }
 
     // Getters
@@ -110,8 +110,8 @@ public enum Protocol {
     public @NotNull String getName() {
         return name;
     }
-    public int getProtocol() {
-        return protocol;
+    public int getVersion() {
+        return version;
     }
 
 }

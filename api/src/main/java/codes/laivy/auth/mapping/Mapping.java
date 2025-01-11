@@ -7,6 +7,7 @@ import codes.laivy.auth.account.Account.Type;
 import codes.laivy.auth.platform.Platform;
 import codes.laivy.auth.platform.Protocol;
 import codes.laivy.auth.platform.Version;
+import io.netty.channel.Channel;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -118,6 +119,14 @@ public interface Mapping extends Closeable {
     interface Connection {
 
         /**
+         * Retrieves the channel of this connection, representing the TCP pipe between
+         * the server and the client
+         *
+         * @return The {@link Channel} of the connected client.
+         */
+        @NotNull Channel getChannel();
+
+        /**
          * Retrieves the remote address of the client attempting to connect.
          *
          * @return The {@link Address} of the connected client.
@@ -152,7 +161,7 @@ public interface Mapping extends Closeable {
          *
          * @return The client's protocol version.
          */
-        @NotNull Protocol getVersion();
+        @NotNull Protocol getProtocol();
 
         /**
          * Retrieves the account information associated with the connection, if available.
@@ -183,6 +192,17 @@ public interface Mapping extends Closeable {
          * @return The {@link Reconnection} data or {@code null} if not applicable.
          */
         @Nullable Reconnection getReconnection();
+
+        /**
+         * Checks if the connection is reconnecting after the premium account verification.
+         * It does have a default implementation that returns true if the {@link #getReconnection()}
+         * is not null.
+         *
+         * @return True if the {@link #getReconnection()} returns a non-null value
+         */
+        default boolean isReconnecting() {
+            return getReconnection() != null;
+        }
 
         // Inner Classes and Enums
 

@@ -36,7 +36,7 @@ metrics:
 # ordering the player to change the nickname to "Laivy" again.
 #
 # The native notchian (vanilla) minecraft servers disable this as default.
-# Keeping this as true if strongly recommended then, it avoids a lot of issues.
+# Keeping this as true is strongly recommended then, it avoids a lot of issues.
 #
 # If you want to change this, it's strongly recommended to reset the plugin's database and
 # all the server's player list first, to avoid players losing their accounts.
