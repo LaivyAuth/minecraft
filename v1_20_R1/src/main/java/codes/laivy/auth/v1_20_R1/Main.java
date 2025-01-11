@@ -25,7 +25,6 @@ public final class Main implements Mapping {
         return "1.20.1";
     }
 
-    // todo: maping name at the logger name
     public static final @NotNull Logger log = LoggerFactory.getLogger(name());
 
     // Object
@@ -98,6 +97,11 @@ public final class Main implements Mapping {
         }
     }
 
+    @Override
+    public @NotNull Iterable<Connection> getConnections() {
+        return null;
+    }
+
     // Loaders
 
     @Override
@@ -118,7 +122,7 @@ public final class Main implements Mapping {
             }
         } else if (Platform.SPIGOT.isCompatible()) {
             try {
-                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
+                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.SpigotNew");
 
                 @NotNull Method method = target.getDeclaredMethod("initialize");
                 method.setAccessible(true);
