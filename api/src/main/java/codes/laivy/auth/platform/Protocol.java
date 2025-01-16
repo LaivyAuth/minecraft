@@ -6,6 +6,8 @@ import java.util.Arrays;
 
 public enum Protocol {
 
+    UNKNOWN("Unknown", -1),
+
     v1_0_0("1.0.0", 22),
 
     v1_1_0("1.1.0", 23),
@@ -92,7 +94,7 @@ public enum Protocol {
     // Static initializers
 
     public static @NotNull Protocol getByProtocol(int protocol) {
-        return Arrays.stream(values()).filter(version -> version.getVersion() == protocol).findFirst().orElseThrow(() -> new IllegalArgumentException("there's no available version with protocol '" + protocol + "'"));
+        return Arrays.stream(values()).filter(version -> version.getVersion() == protocol).findFirst().orElse(UNKNOWN);
     }
 
     // Object
