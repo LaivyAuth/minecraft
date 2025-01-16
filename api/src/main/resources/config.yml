@@ -127,6 +127,12 @@ premium automatic auth:
   #    - If the verification process fails, the client is considered a cracked user and must enter a password.
   #    - If the verification process is successful, the player is considered a premium user and will not need to enter a password for future logins, provided they use a premium account.
   # Note this feature will make the server online-mode=true, but cracked users still can join.
+  #
+  # But what are the cons to leave this enabled? There's just two:
+  # 1. Clients may reauthenticate, and cracked users will see the "Failed to authenticate" message and, if not read the reconnect message correctly
+  #    will suppose the server is premium only and never delete you from the servers list.
+  # 2. New players should reconnect twice.
+  #
   enabled: true
 
   # The time in seconds the player should reconnect after the "Reconnect Once More" message. If the
