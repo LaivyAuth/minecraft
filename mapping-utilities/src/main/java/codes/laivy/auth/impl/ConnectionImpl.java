@@ -1,7 +1,8 @@
-package codes.laivy.auth.v1_20_R1.impl;
+package codes.laivy.auth.impl;
 
 import codes.laivy.address.Address;
 import codes.laivy.address.port.Port;
+import codes.laivy.auth.Handshake;
 import codes.laivy.auth.account.Account;
 import codes.laivy.auth.platform.Protocol;
 import io.netty.channel.Channel;
@@ -90,6 +91,8 @@ public final class ConnectionImpl implements Connection {
     }
     public void setAccount(@NotNull Account account) {
         this.account = account;
+        this.type = account.getType();
+        this.uuid = account.getUniqueId();
     }
 
     @Override

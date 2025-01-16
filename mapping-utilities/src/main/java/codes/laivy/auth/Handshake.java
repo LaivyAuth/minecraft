@@ -1,4 +1,4 @@
-package codes.laivy.auth.v1_20_R1.impl;
+package codes.laivy.auth;
 
 import codes.laivy.address.Address;
 import codes.laivy.address.port.Port;
