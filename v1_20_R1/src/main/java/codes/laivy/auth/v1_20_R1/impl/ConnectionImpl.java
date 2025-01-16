@@ -8,11 +8,13 @@ import io.netty.channel.Channel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-import static codes.laivy.auth.account.Account.*;
-import static codes.laivy.auth.mapping.Mapping.*;
+import static codes.laivy.auth.account.Account.Type;
+import static codes.laivy.auth.mapping.Mapping.Connection;
 
 public final class ConnectionImpl implements Connection {
 
@@ -93,7 +95,7 @@ public final class ConnectionImpl implements Connection {
     public @Nullable Type getType() {
         return type;
     }
-    public void setType(@NotNull Type type) {
+    public void setType(@Nullable Type type) {
         this.type = type;
     }
 
@@ -129,6 +131,52 @@ public final class ConnectionImpl implements Connection {
     @Override
     public @NotNull String toString() {
         return getName();
+    }
+
+    // Classes
+
+    public static final class ReconnectionImpl implements Reconnection {
+
+        // Object
+
+        private final @NotNull Instant creationDate;
+        private final @NotNull Instant expirationDate;
+
+        public ReconnectionImpl() {
+            this.creationDate = Instant.now();
+            // todo: config.yml 'premium automatic auth.reconnect timeout' configuration
+            this.expirationDate = creationDate.plus(Duration.ofMinutes(1));
+        }
+
+        // Getters
+
+        @Override
+        public @NotNull Instant getCreationDate() {
+            return creationDate;
+        }
+        @Override
+        public @NotNull Instant getExpirationDate() {
+            return expirationDate;
+        }
+
+        // Implementations
+
+        @Override
+        public boolean equals(@Nullable Object object) {
+            if (this == object) return true;
+            if (!(object instanceof ReconnectionImpl that)) return false;
+            return Objects.equals(getCreationDate(), that.getCreationDate()) && Objects.equals(getExpirationDate(), that.getExpirationDate());
+        }
+        @Override
+        public int hashCode() {
+            return Objects.hash(getCreationDate(), getExpirationDate());
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return "Reconnection{" + "creationDate=" + getCreationDate() + ", expirationDate=" + getExpirationDate() + '}';
+        }
+
     }
 
 }
