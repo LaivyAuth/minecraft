@@ -121,7 +121,7 @@ final class SpigotNew extends NettyInjection implements Flushable {
             ));
         } else if (message instanceof @NotNull PacketLoginInStart packet) {
             @NotNull Handshake handshake = handshakes.get(channel);
-            @NotNull String nickname = packet.a();
+            @NotNull String name = packet.a();
 
             // Check version
             if (Arrays.stream(getConfiguration().getWhitelist().getBlockedVersions()).anyMatch(protocol -> protocol == handshake.getProtocol().getVersion())) {
@@ -131,18 +131,18 @@ final class SpigotNew extends NettyInjection implements Flushable {
             }
 
             // Check if there's already a user playing with that nickname
-            if (Bukkit.getOnlinePlayers().stream().anyMatch(player -> player.getName().equals(nickname))) {
-                return new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("prevent double join error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", nickname))));
+            if (Bukkit.getOnlinePlayers().stream().anyMatch(player -> player.getName().equals(name))) {
+                return new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("prevent double join error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name))));
             }
 
             // Retrieve account and verify the case-sensitive issue
-            @Nullable Account account = getApi().getAccount(nickname).orElse(null);
-            if (account != null && !account.getName().equals(nickname) && getConfiguration().isCaseSensitiveNicknames()) {
-                return new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("nickname case sensitive error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", nickname))));
+            @Nullable Account account = getApi().getAccount(name).orElse(null);
+            if (account != null && !account.getName().equals(name) && getConfiguration().isCaseSensitiveNicknames()) {
+                return new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("nickname case sensitive error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name))));
             }
 
             // Create connection instance
-            @Nullable ConnectionImpl connection = getConnections().stream().filter(conn -> conn.getName().equals(nickname)).findFirst().orElse(null);
+            @Nullable ConnectionImpl connection = getConnections().stream().filter(conn -> conn.getName().equals(name)).findFirst().orElse(null);
 
             // Check cracked
             if (!checkCracked(channel, connection, account)) {
@@ -150,19 +150,27 @@ final class SpigotNew extends NettyInjection implements Flushable {
             }
 
             // Create or retrieve existent attempt
-            if (connection != null && connection.isReconnecting()) {
+            if (connection != null) {
                 connection.setChannel(channel);
-                connection.setReconnection(null);
 
-                Main.log.trace("Connection attempt '{}' reconnected.", connection.getName());
+//                if (connection.isReconnecting()) {
+//                    connection.setReconnection(null);
+//                }
+
+                // todo: debug
+                Main.log.info("Connection attempt '{}' reconnected.", connection.getName());
             } else {
-                connection = new ConnectionImpl(channel, handshake, nickname);
-                Main.log.trace("Started new connection attempt '{}'.", connection.getName());
+                connection = new ConnectionImpl(channel, handshake, name);
+                Main.log.info("Started new connection attempt '{}'.", connection.getName());
 
                 // Register connection instance (synchronized)
                 synchronized (lock) {
                     connections.add(connection);
                 }
+            }
+
+            if (account != null) {
+                connection.setAccount(account);
             }
         } else if (message instanceof @NotNull PacketLoginInEncryptionBegin begin) {
             // Connection and modules

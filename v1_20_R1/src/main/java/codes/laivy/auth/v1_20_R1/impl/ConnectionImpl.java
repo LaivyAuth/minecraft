@@ -20,21 +20,22 @@ public final class ConnectionImpl implements Connection {
 
     // Object
 
-    private @NotNull Channel channel;
+    private volatile @NotNull Channel channel;
 
     private final @NotNull Address address;
     private final @NotNull Port port;
     private final @NotNull Protocol protocol;
 
     private final @NotNull String name;
-    private @NotNull State state = State.HANDSHAKE;
 
-    private @Nullable UUID uuid;
+    private volatile @NotNull State state = State.HANDSHAKE;
 
-    private @Nullable Account account;
-    private @Nullable Type type;
+    private volatile @Nullable UUID uuid;
 
-    private @Nullable Reconnection reconnection;
+    private volatile @Nullable Account account;
+    private volatile @Nullable Type type;
+
+    private volatile @Nullable Reconnection reconnection;
 
     public ConnectionImpl(@NotNull Channel channel, @NotNull Handshake handshake, @NotNull String name) {
         this.channel = channel;
