@@ -39,7 +39,6 @@
             <groupId>codes.laivy.auth</groupId>
             <artifactId>mapping-utilities</artifactId>
             <version>1.0</version>
-            <scope>provided</scope>
         </dependency>
 
         <!--suppress VulnerableLibrariesLocal -->

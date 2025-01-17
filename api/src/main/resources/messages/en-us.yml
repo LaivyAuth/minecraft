@@ -9,7 +9,7 @@ prefix: "&f&lʟᴀɪᴠʏ &b&lᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ"
 # Prefixes:
 #   - %prefix% * The plug-in's prefix
 #   - %error_report_code% * The error report code means a unique id for the exception/error, so the admins could manually check the exact error of this player
-authentication error: "%prefix%\n\nAn unexpected issue occurred when trying to proceed authentication, contact an administrator for more information."
+authentication error: "%prefix%§r\n\n§cAn unexpected issue occurred when trying to proceed authentication, contact an administrator for more information."
 
 # When a player try to join the server with an account that already is playing (authenticated or not)
 # the connection will be blocked and this message will be returned.
