@@ -14,7 +14,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-@Module
 public final class Timeout implements Delayed {
 
     // Static initializers
@@ -32,6 +31,14 @@ public final class Timeout implements Delayed {
             thread.interrupt();
             thread = null;
         }
+    }
+
+    static {
+        // Initialize
+        initialize();
+
+        // Add shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread(Timeout::interrupt, "Timeouts Shutdown Hook"));
     }
 
     // Object
@@ -165,6 +172,7 @@ public final class Timeout implements Delayed {
                         task.reentrant.unlock();
                     }
                 } catch (@NotNull InterruptedException e) {
+                    // todo: interrupted exception
                     break;
                 }
             }

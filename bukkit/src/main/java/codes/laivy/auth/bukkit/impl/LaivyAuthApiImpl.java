@@ -80,20 +80,20 @@ final class LaivyAuthApiImpl implements LaivyAuthApi<LaivyAuth> {
                 }
             } catch (@NotNull InvocationTargetException | @NotNull InstantiationException | @NotNull IllegalAccessException e) {
                 log.error("Cannot instantiate main class of mapping '{}': {}", mappingFile.getName(), e.getMessage());
-                log.atDebug().setCause(e).log();
+                log.atError().setCause(e).log();
             }
         } catch (@NotNull NoSuchMethodException e) {
             log.error("Cannot find a valid constructor of mapping '{}'. It should have a constructor with '{}', '{}' and '{}' parameters.", mappingFile.getName(), ClassLoader.class, LaivyAuthApi.class, Configuration.class);
-            log.atDebug().setCause(e).log();
+            log.atError().setCause(e).log();
         } catch (@NotNull ClassNotFoundException e) {
             log.error("Cannot find main class of mapping '{}'. It should have the 'Main-Class' attribute at jar meta file.", mappingFile.getName());
-            log.atDebug().setCause(e).log();
+            log.atError().setCause(e).log();
         } catch (@NotNull IOException e) {
             log.error("Cannot load mapping file '{}': {}", mappingFile.getName(), e.getMessage());
-            log.atDebug().setCause(e).log();
+            log.atError().setCause(e).log();
         } catch (@NotNull Throwable e) {
             log.error("An unknown exception occurred trying to load mapping '{}': {}", mappingFile.getName(), e.getMessage());
-            log.atDebug().setCause(e).log();
+            log.atError().setCause(e).log();
         }
 
         // Get compatible module and load it
@@ -108,7 +108,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi<LaivyAuth> {
             this.mapping = null; // Remove mapping reference, it's not compatible.
 
             log.error("Cannot load mapping '{}': {}", mapping.getName(), e.getMessage());
-            log.atDebug().setCause(e).log();
+            log.atError().setCause(e).log();
         }
 
         // Check if there's a loaded module
