@@ -2,9 +2,9 @@ package codes.laivy.auth.v1_20_R1.spigot;
 
 import codes.laivy.address.Address;
 import codes.laivy.address.port.Port;
-import codes.laivy.auth.impl.ConnectionImpl;
 import codes.laivy.auth.Handshake;
 import codes.laivy.auth.account.Account;
+import codes.laivy.auth.impl.ConnectionImpl;
 import codes.laivy.auth.mapping.Mapping.Connection;
 import codes.laivy.auth.platform.Protocol;
 import codes.laivy.auth.utilities.messages.PluginMessages;
@@ -67,11 +67,6 @@ final class Spigot extends NettyInjection implements Flushable {
 
     // Object
 
-    private final @NotNull Object lock = new Object();
-
-    // todo: auto dump connections
-    private final @NotNull Set<ConnectionImpl> connections = new LinkedHashSet<>();
-
     public Spigot() {
         super(ServerReflections.getServerChannel());
 
@@ -82,7 +77,7 @@ final class Spigot extends NettyInjection implements Flushable {
     // Getters
 
     public @NotNull Collection<ConnectionImpl> getConnections() {
-        return connections;
+        return ConnectionImpl.retrieve();
     }
 
     // Flushable
@@ -90,7 +85,6 @@ final class Spigot extends NettyInjection implements Flushable {
     @Override
     public void flush() throws IOException {
         super.flush();
-        getConnections().clear();
     }
 
     // Modules
@@ -139,10 +133,11 @@ final class Spigot extends NettyInjection implements Flushable {
             }
 
             // Create connection instance
-            @Nullable ConnectionImpl connection = getConnections().stream().filter(conn -> conn.getName().equals(name)).findFirst().orElse(null);
+            @Nullable ConnectionImpl connection = ConnectionImpl.retrieve(name).orElse(null);
 
             // Check cracked
             if (!checkCracked(channel, connection, account)) {
+                // todo: cracked users not allowed message
                 return null;
             }
 
@@ -151,13 +146,8 @@ final class Spigot extends NettyInjection implements Flushable {
                 connection.setChannel(channel);
                 Main.log.trace("Connection attempt '{}' reconnected.", connection.getName());
             } else {
-                connection = new ConnectionImpl(channel, handshake, name);
+                connection = ConnectionImpl.create(channel, handshake, name);
                 Main.log.trace("Started new connection attempt '{}'.", connection.getName());
-
-                // Register connection instance (synchronized)
-                synchronized (lock) {
-                    connections.add(connection);
-                }
             }
 
             // Define connection's account
@@ -166,7 +156,7 @@ final class Spigot extends NettyInjection implements Flushable {
             }
         } else if (message instanceof @NotNull PacketLoginInEncryptionBegin begin) {
             // Connection and modules
-            @NotNull ConnectionImpl connection = getConnections().stream().filter(conn -> conn.getChannel().equals(channel)).findFirst().orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));
+            @NotNull ConnectionImpl connection = ConnectionImpl.retrieve(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));
             @Nullable Account account = connection.getAccount();
 
             try {
@@ -222,6 +212,7 @@ final class Spigot extends NettyInjection implements Flushable {
 
                     // Check cracked
                     if (!checkCracked(channel, connection, account)) {
+                        // todo: cracked users not allowed message
                          return null;
                     }
 
@@ -252,7 +243,7 @@ final class Spigot extends NettyInjection implements Flushable {
         @NotNull Channel channel = context.channel();
 
         if (message instanceof @NotNull PacketLoginOutEncryptionBegin begin) {
-            @NotNull ConnectionImpl connection = getConnections().stream().filter(conn -> conn.getChannel().equals(channel)).findFirst().orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));
+            @NotNull ConnectionImpl connection = ConnectionImpl.retrieve(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));
             @Nullable Account account = connection.getAccount();
 
             // The default implementation of Connection already does that. It's just for security.
@@ -292,7 +283,7 @@ final class Spigot extends NettyInjection implements Flushable {
                 }
             }
         } else if (message instanceof PacketLoginOutSuccess) {
-            @NotNull ConnectionImpl connection = getConnections().stream().filter(conn -> conn.getChannel().equals(channel)).findFirst().orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));
+            @NotNull ConnectionImpl connection = ConnectionImpl.retrieve(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));
 
             if (connection.getUniqueId() == null) {
                 throw new IllegalStateException("the user hasn't been successfully identified");
@@ -303,10 +294,7 @@ final class Spigot extends NettyInjection implements Flushable {
                 account.setType(connection.getType());
                 account.setName(connection.getName());
             } finally {
-                // Finish it and remove synchoronously the connection from static list
-                synchronized (lock) {
-                    getConnections().remove(connection);
-                }
+                connection.flush();
             }
         }
 
@@ -323,7 +311,7 @@ final class Spigot extends NettyInjection implements Flushable {
             return;
         }
 
-        @Nullable ConnectionImpl connection = getConnections().stream().filter(conn -> conn.getChannel().equals(channel)).findFirst().orElse(null);
+        @Nullable ConnectionImpl connection = ConnectionImpl.retrieve(channel).orElse(null);
 
         if (connection != null && !connection.isReconnecting()) {
             @Nullable Account account = connection.getAccount();
@@ -335,9 +323,7 @@ final class Spigot extends NettyInjection implements Flushable {
                 connection.setPending(false);
             }
 
-            synchronized (lock) {
-                connections.remove(connection);
-            }
+            connection.flush();
 
             // Account
             if (account != null) {
@@ -367,6 +353,7 @@ final class Spigot extends NettyInjection implements Flushable {
         @NotNull Channel channel = context.channel();
         channel.write(new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("authentication error", PluginMessages.Placeholder.PREFIX))));
 
+        cause.printStackTrace();
         // todo: exception handling
     }
 
