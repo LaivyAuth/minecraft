@@ -5,6 +5,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class PlayerUnauthenticateEvent extends AuthEvent {
     public PlayerUnauthenticateEvent(@NotNull Account account) {
-        super(account);
+        super(false, account);
     }
 }

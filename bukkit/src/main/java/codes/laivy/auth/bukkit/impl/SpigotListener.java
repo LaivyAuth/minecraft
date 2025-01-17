@@ -45,10 +45,6 @@ public final class SpigotListener implements Listener {
     private void join(@NotNull PlayerJoinEvent e) {
         @NotNull Account data = LaivyAuth.getApi().getAccount(e.getPlayer().getUniqueId()).orElseThrow(() -> new NullPointerException("cannot find the account for player '" + e.getPlayer().getName() + "'"));
 
-        if (data.getType() == Account.Type.PREMIUM) {
-            data.setAuthenticated(true); // Automatic authenticate premium users
-        }
-
         if (e.getPlayer().isOnline()) {
             e.getPlayer().setWalkSpeed(0.2f);
             e.getPlayer().setFlySpeed(0.1f);

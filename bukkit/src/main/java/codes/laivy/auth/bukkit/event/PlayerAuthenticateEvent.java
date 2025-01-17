@@ -1,6 +1,7 @@
 package codes.laivy.auth.bukkit.event;
 
 import codes.laivy.auth.account.Account;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Cancellable;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,7 +12,7 @@ public class PlayerAuthenticateEvent extends AuthEvent implements Cancellable {
     private boolean cancelled = false;
 
     public PlayerAuthenticateEvent(@NotNull Account account) {
-        super(account);
+        super(!Bukkit.isPrimaryThread(), account);
     }
 
     // Cancellable

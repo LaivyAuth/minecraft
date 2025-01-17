@@ -16,7 +16,7 @@ public class PlayerPasswordChangeEvent extends AuthEvent implements Cancellable 
     private boolean cancelled = false;
 
     public PlayerPasswordChangeEvent(@NotNull Account account, char @NotNull [] password) {
-        super(account);
+        super(false, account);
         this.password = password;
     }
 

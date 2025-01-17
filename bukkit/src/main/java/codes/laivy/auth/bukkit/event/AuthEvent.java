@@ -15,7 +15,8 @@ public abstract class AuthEvent extends Event {
 
     private final @NotNull Account account;
 
-    protected AuthEvent(@NotNull Account account) {
+    protected AuthEvent(boolean async, @NotNull Account account) {
+        super(async);
         this.account = account;
     }
 

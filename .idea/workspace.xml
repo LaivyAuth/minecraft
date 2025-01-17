@@ -6,15 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="76d35d64-16ae-43b5-aece-0e7c1c254630" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/src/main/resources/messages/en-us.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/resources/messages/en-us.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/LaivyAuthApiImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/LaivyAuthApiImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/AuthEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/AuthEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerAuthenticateEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerAuthenticateEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerPasswordChangeEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerPasswordChangeEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerUnauthenticateEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/event/PlayerUnauthenticateEvent.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/SpigotListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/bukkit/src/main/java/codes/laivy/auth/bukkit/impl/SpigotListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-utilities/src/main/java/codes/laivy/auth/utilities/timeout/Timeout.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-utilities/src/main/java/codes/laivy/auth/utilities/timeout/Timeout.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mapping-utilities/src/main/java/codes/laivy/auth/impl/ConnectionImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/mapping-utilities/src/main/java/codes/laivy/auth/impl/ConnectionImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1_20_R1/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1_20_R2/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R2/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

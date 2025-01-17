@@ -293,6 +293,11 @@ final class Spigot extends NettyInjection implements Flushable {
                 @NotNull Account account = connection.getAccount() != null ? connection.getAccount() : getApi().getOrCreate(connection.getUniqueId(), connection.getName());
                 account.setType(connection.getType());
                 account.setName(connection.getName());
+
+                // Mark as authenticated if player is premium and not required authentication
+                if (connection.getType() == Account.Type.PREMIUM && !getConfiguration().getAuthentication().isRequiredForPremiumPlayers()) {
+                    account.setAuthenticated(true);
+                }
             } finally {
                 connection.flush();
             }
