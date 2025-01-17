@@ -5,23 +5,51 @@ import codes.laivy.address.port.Port;
 import codes.laivy.auth.Handshake;
 import codes.laivy.auth.account.Account;
 import codes.laivy.auth.platform.Protocol;
+import codes.laivy.auth.utilities.timeout.Timeout;
 import io.netty.channel.Channel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Flushable;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static codes.laivy.auth.account.Account.Type;
 import static codes.laivy.auth.mapping.Mapping.Connection;
 
-public final class ConnectionImpl implements Connection {
+public final class ConnectionImpl implements Connection, Flushable {
+
+    // Static initializers
+
+    private static final @NotNull Object lock = new Object();
+    private static final @NotNull Map<Channel, ConnectionImpl> connections = new LinkedHashMap<>();
+
+    public static @NotNull Collection<ConnectionImpl> retrieve() {
+        return connections.values();
+    }
+    public static @NotNull Optional<ConnectionImpl> retrieve(@NotNull Channel channel) {
+        return Optional.ofNullable(connections.getOrDefault(channel, null));
+    }
+    public static @NotNull Optional<ConnectionImpl> retrieve(@NotNull String name) {
+        return connections.values().stream().filter(conn -> conn.getName().equals(name)).findFirst();
+    }
+
+    public static @NotNull ConnectionImpl create(@NotNull Channel channel, @NotNull Handshake handshake, @NotNull String name) {
+        @NotNull ConnectionImpl connection = new ConnectionImpl(channel, handshake, name);
+
+        synchronized (lock) {
+            connections.put(channel, connection);
+        }
+
+        return connection;
+    }
 
     // Object
 
     private volatile @NotNull Channel channel;
+    private final @NotNull Timeout timeout;
 
     private final @NotNull Address address;
     private final @NotNull Port port;
@@ -40,7 +68,7 @@ public final class ConnectionImpl implements Connection {
 
     private volatile boolean pending = false;
 
-    public ConnectionImpl(@NotNull Channel channel, @NotNull Handshake handshake, @NotNull String name) {
+    private ConnectionImpl(@NotNull Channel channel, @NotNull Handshake handshake, @NotNull String name) {
         this.channel = channel;
 
         this.address = handshake.getAddress();
@@ -48,6 +76,14 @@ public final class ConnectionImpl implements Connection {
         this.protocol = handshake.getProtocol();
 
         this.name = name;
+
+        // Timeout
+        // todo: config.yml 'premium automatic auth.reconnect timeout' configuration plus some seconds
+        this.timeout = new Timeout(Duration.ofMinutes(3)).whenComplete((e) -> {
+            synchronized (lock) {
+                connections.remove(channel);
+            }
+        });
     }
 
     // Getters
@@ -57,7 +93,14 @@ public final class ConnectionImpl implements Connection {
         return channel;
     }
     public void setChannel(@NotNull Channel channel) {
-        this.channel = channel;
+        synchronized (lock) {
+            // Remove old
+            connections.remove(this.channel);
+
+            // Perform change
+            this.channel = channel;
+            connections.put(channel, this);
+        }
     }
 
     @Override
@@ -126,6 +169,13 @@ public final class ConnectionImpl implements Connection {
     }
     public void setPending(boolean pending) {
         this.pending = pending;
+    }
+
+    // Flushable
+
+    @Override
+    public void flush() throws IOException {
+        timeout.cancel();
     }
 
     // Implementations
