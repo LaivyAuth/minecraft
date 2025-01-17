@@ -17,7 +17,7 @@ import java.util.Arrays;
 
 public final class Main implements Mapping {
 
-// Static initializers
+    // Static initializers
 
     private static @UnknownNullability Main instance;
 
@@ -96,6 +96,11 @@ public final class Main implements Mapping {
         } catch (@NotNull Throwable throwable) {
             return false;
         }
+    }
+
+    @Override
+    public @NotNull Iterable<Connection> getConnections() {
+        return null;
     }
 
     // Loaders

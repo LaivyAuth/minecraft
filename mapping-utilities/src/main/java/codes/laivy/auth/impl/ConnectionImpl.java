@@ -38,6 +38,8 @@ public final class ConnectionImpl implements Connection {
 
     private volatile @Nullable Reconnection reconnection;
 
+    private volatile boolean pending = false;
+
     public ConnectionImpl(@NotNull Channel channel, @NotNull Handshake handshake, @NotNull String name) {
         this.channel = channel;
 
@@ -117,6 +119,13 @@ public final class ConnectionImpl implements Connection {
     }
     public void setReconnection(@Nullable Reconnection reconnection) {
         this.reconnection = reconnection;
+    }
+
+    public boolean isPending() {
+        return pending;
+    }
+    public void setPending(boolean pending) {
+        this.pending = pending;
     }
 
     // Implementations

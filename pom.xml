@@ -11,12 +11,14 @@
 
     <modules>
         <module>api</module>
-        <module>utilities</module>
         <module>bukkit</module>
         <module>plugin</module>
 
         <module>v1_20_R1</module>
         <module>v1_20_R2</module>
+
+        <module>api-utilities</module>
+        <module>mapping-utilities</module>
     </modules>
 
     <properties>
@@ -70,5 +72,37 @@
             </exclusions>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>delete-files</id>
+                        <phase>initialize</phase>
+                        <inherited>false</inherited>
+
+                        <configuration>
+                            <target>
+                                <delete>
+                                    <fileset dir="${project.basedir}/plugin/">
+                                        <include name="*.jar"/>
+                                    </fileset>
+                                    <fileset dir="${project.basedir}/plugin/src/main/resources/mappings/">
+                                        <include name="*.jar"/>
+                                    </fileset>
+                                </delete>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

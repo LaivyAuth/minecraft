@@ -58,6 +58,7 @@ public final class SpigotListener implements Listener {
             // todo: reset title
 
             if (data.isNew()) {
+                // todo: messages
                 Bukkit.getConsoleSender().sendMessage("§8(§a+§8) §a§l§oNEW§8 Player §7" + e.getPlayer().getName() + "§8 logged in with address §7" + e.getPlayer().getAddress() + "§8.");
             } else {
                 Bukkit.getConsoleSender().sendMessage("§8(§a+§8) Player §7" + e.getPlayer().getName() + "§8 logged in with address §7" + e.getPlayer().getAddress() + "§8.");
