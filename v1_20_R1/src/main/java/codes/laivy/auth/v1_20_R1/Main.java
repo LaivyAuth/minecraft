@@ -122,7 +122,7 @@ public final class Main implements Mapping {
             }
         } else if (Platform.SPIGOT.isCompatible()) {
             try {
-                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.SpigotNew");
+                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
 
                 @NotNull Method method = target.getDeclaredMethod("initialize");
                 method.setAccessible(true);
