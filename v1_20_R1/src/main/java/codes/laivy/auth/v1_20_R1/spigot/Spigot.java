@@ -69,10 +69,8 @@ final class Spigot extends NettyInjection implements Flushable {
 
     private final @NotNull Object lock = new Object();
 
+    // todo: auto dump connections
     private final @NotNull Set<ConnectionImpl> connections = new LinkedHashSet<>();
-    private final @NotNull Set<Connection> pendings = new HashSet<>();
-
-    private final @NotNull Map<Channel, Handshake> handshakes = new HashMap<>();
 
     public Spigot() {
         super(ServerReflections.getServerChannel());
@@ -319,9 +317,6 @@ final class Spigot extends NettyInjection implements Flushable {
     protected void close(@NotNull ChannelHandlerContext context) throws IOException {
         @NotNull Channel channel = context.channel();
         @NotNull NetworkManager manager = getNetworkManager(channel);
-
-        // Dump caches
-        Handshake.remove(channel);
 
         // Start closing
         if (!(manager.j() instanceof LoginListener)) {

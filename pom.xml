@@ -17,7 +17,7 @@
         <module>v1_20_R1</module>
         <module>v1_20_R2</module>
 
-        <module>api-utilities</module>
+        <module>core-utilities</module>
         <module>mapping-utilities</module>
     </modules>
 

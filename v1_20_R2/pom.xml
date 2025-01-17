@@ -29,7 +29,7 @@
 
         <dependency>
             <groupId>codes.laivy.auth</groupId>
-            <artifactId>api-utilities</artifactId>
+            <artifactId>core-utilities</artifactId>
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>
