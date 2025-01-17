@@ -3,10 +3,12 @@ package codes.laivy.auth;
 import codes.laivy.address.Address;
 import codes.laivy.address.port.Port;
 import codes.laivy.auth.platform.Protocol;
+import codes.laivy.auth.utilities.timeout.Timeout;
 import io.netty.channel.Channel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -19,19 +21,16 @@ public final class Handshake {
     private static final @NotNull Object lock = new Object();
     private static final @NotNull Map<Channel, Handshake> handshakes = new LinkedHashMap<>();
 
-    public static boolean remove(@NotNull Channel channel) {
-        return handshakes.remove(channel) != null;
-    }
     public static @NotNull Optional<Handshake> getAndRemove(@NotNull Channel channel) {
         synchronized (lock) {
             @NotNull Optional<Handshake> optional = Optional.ofNullable(handshakes.getOrDefault(channel, null));
-            optional.ifPresent(handshake -> handshakes.remove(channel));
+            optional.ifPresent(handshake -> handshake.timeout.cancel());
 
             return optional;
         }
     }
     public static @NotNull Handshake create(@NotNull Channel channel, @NotNull Protocol protocol, @NotNull Address address, @NotNull Port port) {
-        @NotNull Handshake handshake = new Handshake(protocol, address, port);
+        @NotNull Handshake handshake = new Handshake(channel, protocol, address, port);
 
         synchronized (lock) {
             handshakes.put(channel, handshake);
@@ -42,15 +41,23 @@ public final class Handshake {
 
     // Object
 
-    private final @NotNull Protocol protocol;
+    private final @NotNull Timeout timeout;
 
+    private final @NotNull Protocol protocol;
     private final @NotNull Address address;
     private final @NotNull Port port;
 
-    private Handshake(@NotNull Protocol protocol, @NotNull Address address, @NotNull Port port) {
+    private Handshake(@NotNull Channel channel, @NotNull Protocol protocol, @NotNull Address address, @NotNull Port port) {
         this.protocol = protocol;
         this.address = address;
         this.port = port;
+
+        // Generate timeout
+        this.timeout = new Timeout(Duration.ofSeconds(15)).whenComplete((e) -> {
+            synchronized (lock) {
+                handshakes.remove(channel);
+            }
+        });
     }
 
     // Getters
