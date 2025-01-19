@@ -7,6 +7,7 @@ import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.exception.AccountExistsException;
 import codes.laivy.auth.mapping.Mapping;
 import codes.laivy.auth.platform.Platform;
+import codes.laivy.auth.platform.Version;
 import codes.laivy.serializable.Serializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +30,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.JarFile;
 
-final class LaivyAuthApiImpl implements LaivyAuthApi<LaivyAuth> {
+final class LaivyAuthApiImpl implements LaivyAuthApi {
 
     // Static initializers
 
@@ -194,6 +195,16 @@ final class LaivyAuthApiImpl implements LaivyAuthApi<LaivyAuth> {
 
     public @NotNull Configuration getConfiguration() {
         return configuration;
+    }
+
+    @Override
+    public @NotNull Version getVersion() {
+        return Version.create(1, 0);
+    }
+
+    @Override
+    public @NotNull File getDataFolder() {
+        return getPlugin().getDataFolder();
     }
 
     @Override

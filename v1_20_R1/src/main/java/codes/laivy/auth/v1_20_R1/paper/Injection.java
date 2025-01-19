@@ -1,7 +1,7 @@
 package codes.laivy.auth.v1_20_R1.paper;
 
 import codes.laivy.auth.account.Account;
-import codes.laivy.auth.utilities.netty.NettyInjection;
+import codes.laivy.auth.netty.NettyInjection;
 import codes.laivy.auth.v1_20_R1.Main;
 import codes.laivy.auth.v1_20_R1.reflections.PlayerReflections;
 import com.mojang.authlib.GameProfile;

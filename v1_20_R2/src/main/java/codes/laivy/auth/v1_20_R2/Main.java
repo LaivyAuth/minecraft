@@ -31,10 +31,10 @@ public final class Main implements Mapping {
     // Object
 
     private final @NotNull ClassLoader classLoader;
-    private final @NotNull LaivyAuthApi<?> api;
+    private final @NotNull LaivyAuthApi api;
     private final @NotNull Configuration configuration;
 
-    private Main(@NotNull ClassLoader classLoader, @NotNull LaivyAuthApi<?> api, @NotNull Configuration configuration) {
+    private Main(@NotNull ClassLoader classLoader, @NotNull LaivyAuthApi api, @NotNull Configuration configuration) {
         this.classLoader = classLoader;
         this.api = api;
         this.configuration = configuration;
@@ -48,7 +48,7 @@ public final class Main implements Mapping {
     public @NotNull ClassLoader getClassLoader() {
         return classLoader;
     }
-    public static @NotNull LaivyAuthApi<?> getApi() {
+    public static @NotNull LaivyAuthApi getApi() {
         return instance.api;
     }
     public static @NotNull Configuration getConfiguration() {
