@@ -1,6 +1,7 @@
 # This is the native english messages file, you can customize a lot of plugin messages here
 # You can also use some placeholders described in each message's comments
 
+# Please don't change this :(
 prefix: "&f&lʟᴀɪᴠʏ &b&lᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ"
 
 # If any exception or error occurrs when trying to join the server or authenticating, this message will be thrown

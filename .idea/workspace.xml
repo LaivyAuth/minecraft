@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="76d35d64-16ae-43b5-aece-0e7c1c254630" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/reflections/Reflections.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/src/main/resources/messages/en-us.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/resources/messages/en-us.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/reflections/Reflections.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/reflections/Reflections.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -53,37 +54,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "Maven. [clean,install,-pl,core].executor": "Run",
-    "Maven.auth [clean,install,-U].executor": "Run",
-    "Maven.auth [clean,install,-pl,bukkit].executor": "Run",
-    "Maven.auth [clean,install,-pl,core].executor": "Run",
-    "Maven.auth [clean,install,-pl,plugin].executor": "Run",
-    "Maven.auth [clean,install,-pl,v1_20_R1].executor": "Run",
-    "Maven.auth [clean,install].executor": "Run",
-    "Maven.auth [clean,package,-U].executor": "Run",
-    "Maven.auth [clean,package,-pl,plugin].executor": "Run",
-    "Maven.auth [clean,package].executor": "Run",
-    "Maven.auth [compile].executor": "Run",
-    "Maven.auth [install,-pl,core].executor": "Run",
-    "Maven.auth [install].executor": "Run",
-    "Maven.auth [package].executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last.edited.regexp": "&7Ata",
-    "last_opened_file_path": "G:/Meu Drive/Codes/test",
-    "onboarding.tips.debug.path": "G:/Meu Drive/Codes/LaivyAuth/mapping-utilities/src/main/java/codes/laivy/auth/Main.java",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.1484375",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "Errors"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Maven. [clean,install,-pl,core].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [clean,install,-U].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [clean,install,-pl,bukkit].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [clean,install,-pl,core].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [clean,install,-pl,plugin].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [clean,install,-pl,v1_20_R1].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [clean,install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [clean,package,-U].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [clean,package,-pl,plugin].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [clean,package].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [install,-pl,core].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.auth [package].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last.edited.regexp&quot;: &quot;&amp;7Ata&quot;,
+    &quot;last_opened_file_path&quot;: &quot;G:/Meu Drive/Codes/test&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;G:/Meu Drive/Codes/LaivyAuth/mapping-utilities/src/main/java/codes/laivy/auth/Main.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.1484375&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="G:\Meu Drive\Codes\LaivyAuth\mapping-utilities\src\main\java\codes\laivy\auth" />

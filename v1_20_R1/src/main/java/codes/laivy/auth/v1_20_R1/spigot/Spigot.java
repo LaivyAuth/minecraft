@@ -143,8 +143,13 @@ final class Spigot extends NettyInjection implements Flushable {
             // Create connection instance
             @Nullable ConnectionImpl connection = ConnectionImpl.retrieve(name).orElse(null);
 
+            // Retrieve network manager and login listener
+            @NotNull NetworkManager manager = getNetworkManager(channel);
+            @NotNull LoginListener listener = (LoginListener) manager.j();
+
             // Check cracked
-            if (!checkCracked(channel, connection, account)) {
+            if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED) || (connection != null && connection.getType() == Account.Type.CRACKED)) {
+                Reflections.disconnect(listener, PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", (connection != null ? connection.getName() : account.getName())), new PluginMessages.Placeholder("uuid", String.valueOf((connection != null ? connection.getUniqueId() : account.getUniqueId())))));
                 return null;
             }
 
@@ -226,8 +231,9 @@ final class Spigot extends NettyInjection implements Flushable {
                     connection.setType(Account.Type.CRACKED);
 
                     // Check cracked
-                    if (!checkCracked(channel, connection, account)) {
-                         return null;
+                    if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && account != null && account.getType() == Account.Type.CRACKED || connection.getType() == Account.Type.CRACKED) {
+                        Reflections.disconnect(listener, PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection.getUniqueId()))));
+                        return null;
                     }
 
                     // Encrypt and Decrypt modules
@@ -418,17 +424,6 @@ final class Spigot extends NettyInjection implements Flushable {
                 throw new RuntimeException("cannot fire events", e);
             }
         }
-    }
-
-    // Utilities
-
-    private boolean checkCracked(@NotNull Channel channel, @Nullable Connection connection, @Nullable Account account) {
-        if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED) || (connection != null && connection.getType() == Account.Type.CRACKED)) {
-            ((LoginListener) (getNetworkManager(channel)).j()).b(chat(PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", (connection != null ? connection.getName() : account.getName())), new PluginMessages.Placeholder("uuid", String.valueOf((connection != null ? connection.getUniqueId() : account.getUniqueId()))))));
-            return false;
-        }
-
-        return true;
     }
 
 }

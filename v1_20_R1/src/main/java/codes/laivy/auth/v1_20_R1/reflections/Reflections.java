@@ -1,6 +1,7 @@
 package codes.laivy.auth.v1_20_R1.reflections;
 
 import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.server.network.LoginListener;
 import net.minecraft.util.CryptographyException;
 import net.minecraft.util.MinecraftEncryption;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -18,6 +19,10 @@ public final class Reflections {
     }
     public static byte[] digestData(@NotNull String var0, @NotNull PublicKey publicKey, @NotNull SecretKey secretKey) throws CryptographyException {
         return MinecraftEncryption.a("", publicKey, secretKey); // Digest Data
+    }
+
+    public static void disconnect(@NotNull LoginListener listener, @NotNull String message) {
+        listener.b(chat(message));
     }
 
     // Object
