@@ -49,11 +49,15 @@ public final class ExceptionHandler {
         }
 
         // Create file
-        date = new SimpleDateFormat("HH:mm:ss").format(new Date());
+        date = new SimpleDateFormat("HH-mm-ss").format(new Date());
         @NotNull File file = new File(folder, date + ".log");
 
-        if (!file.exists() && !file.mkdirs()) {
-            throw new IllegalStateException("cannot create exception file: " + file);
+        try {
+            if (!file.exists() && !file.createNewFile()) {
+                throw new IllegalStateException("cannot create exception file: " + file);
+            }
+        } catch (@NotNull IOException e) {
+            throw new RuntimeException("cannot create parent exception file: " + file, e);
         }
 
         // Finish
@@ -72,7 +76,7 @@ public final class ExceptionHandler {
             writer.write("Stacktraces: \n");
 
             for (@NotNull StackTraceElement element : throwable.getStackTrace()) {
-                writer.write(element + "\n");
+                writer.write("\t - " + element + "\n");
             }
         } catch (@NotNull IOException e) {
             throw new RuntimeException("cannot write exception to file: " + file, e);
