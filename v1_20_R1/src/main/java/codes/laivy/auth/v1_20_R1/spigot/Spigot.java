@@ -148,7 +148,7 @@ final class Spigot extends NettyInjection implements Flushable {
             @NotNull LoginListener listener = (LoginListener) manager.j();
 
             // Check cracked
-            if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED) || (connection != null && connection.getType() == Account.Type.CRACKED)) {
+            if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && ((account != null && account.getType() == Account.Type.CRACKED) || (connection != null && connection.getType() == Account.Type.CRACKED))) {
                 Reflections.disconnect(listener, PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", (connection != null ? connection.getName() : account.getName())), new PluginMessages.Placeholder("uuid", String.valueOf((connection != null ? connection.getUniqueId() : account.getUniqueId())))));
                 return null;
             }
@@ -211,8 +211,10 @@ final class Spigot extends NettyInjection implements Flushable {
 
                     listener.a(begin); // Handle Key
                 } catch (@NotNull Throwable throwable) {
-                    Main.log.error("Cannot authenticate premium player {}.", connection.getName());
+                    Main.log.error("Cannot authenticate premium player {}: {}", connection.getName(), throwable.getMessage());
                     Main.log.atDebug().setCause(throwable).log();
+
+                    Main.getExceptionHandler().handle(throwable);
                 } else try {
                     if (account != null && account.getType() == Account.Type.PREMIUM) {
                         listener.b(chat(PluginMessages.getMessage("premium authentication.premium account required error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()))));
@@ -220,18 +222,14 @@ final class Spigot extends NettyInjection implements Flushable {
                     }
 
                     // Initialize
-                    @NotNull GameProfile profile = getListenerProfile(listener);
                     listener.initUUID();
-
-                    if (profile.getId() == null) {
-                        throw new IllegalStateException("cannot retrieve cracked user's unique id");
-                    }
 
                     connection.setUniqueId(getListenerProfile(listener).getId());
                     connection.setType(Account.Type.CRACKED);
 
                     // Check cracked
-                    if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && account != null && account.getType() == Account.Type.CRACKED || connection.getType() == Account.Type.CRACKED) {
+                    System.out.println("Allowed: " + getConfiguration().getWhitelist().isAllowCrackedUsers());
+                    if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED || connection.getType() == Account.Type.CRACKED)) {
                         Reflections.disconnect(listener, PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection.getUniqueId()))));
                         return null;
                     }
@@ -244,8 +242,10 @@ final class Spigot extends NettyInjection implements Flushable {
 
                     new FireEventsThread(connection, listener).start();
                 } catch (@NotNull Throwable throwable) {
-                    Main.log.error("Cannot authenticate cracked player {}.", connection.getName());
+                    Main.log.error("Cannot authenticate cracked player {}: {}", connection.getName(), throwable.getMessage());
                     Main.log.atDebug().setCause(throwable).log();
+
+                    Main.getExceptionHandler().handle(throwable);
                 }
 
                 return null;
@@ -285,6 +285,7 @@ final class Spigot extends NettyInjection implements Flushable {
                         enumField.setAccessible(true);
 
                         @NotNull Enum<?> enumObject = (Enum<?>) Class.forName("net.minecraft.server.network.LoginListener$EnumProtocolState").getEnumConstants()[2];
+                        System.out.println("Enum: " + enumObject);
                         enumField.set(listener, enumObject);
 
                         listener.initUUID();
@@ -365,9 +366,11 @@ final class Spigot extends NettyInjection implements Flushable {
 
                 // Set on account
                 getApi().getOrCreate(uuid, connection.getName()).setType(Account.Type.CRACKED);
-            } catch (@NotNull Throwable e) {
-                Main.log.error("Cannot mark player {} as cracked: {}", connection.getName(), e.getMessage());
-                Main.log.atDebug().setCause(e).log();
+            } catch (@NotNull Throwable throwable) {
+                Main.log.error("Cannot mark player {} as cracked: {}", connection.getName(), throwable.getMessage());
+                Main.log.atDebug().setCause(throwable).log();
+
+                Main.getExceptionHandler().handle(throwable);
             }
         }
     }
@@ -378,7 +381,11 @@ final class Spigot extends NettyInjection implements Flushable {
         channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("authentication error", PluginMessages.Placeholder.PREFIX))));
 
         // Handle the exception
-        Main.getExceptionHandler().handle(cause);
+        try {
+            Main.getExceptionHandler().handle(cause);
+        } catch (@NotNull Throwable throwable) {
+            Main.log.error("Cannot log exception error: {}", throwable.getMessage());
+        }
     }
 
     // Classes
