@@ -12,6 +12,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
@@ -199,6 +200,16 @@ public final class SpigotListener implements Listener {
         if (!isLogged(e.getPlayer())) {
             e.getPlayer().sendMessage("§cYou must be authenticated to do this!");
             e.setCancelled(true);
+        }
+    }
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    private void foodChange(@NotNull FoodLevelChangeEvent e) {
+        if (e.getEntity() instanceof Player) {
+            @NotNull Player player = (Player) e.getEntity();
+
+            if (!isLogged(player)) {
+                e.setCancelled(true);
+            }
         }
     }
 
