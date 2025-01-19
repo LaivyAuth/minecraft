@@ -88,7 +88,8 @@ public final class ExceptionHandler {
     @Override
     public boolean equals(@Nullable Object object) {
         if (this == object) return true;
-        if (!(object instanceof ExceptionHandler that)) return false;
+        if (!(object instanceof ExceptionHandler)) return false;
+        @NotNull ExceptionHandler that = (ExceptionHandler) object;
         return Objects.equals(getVersion(), that.getVersion()) && Objects.equals(getFolder(), that.getFolder());
     }
     @Override

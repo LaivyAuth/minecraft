@@ -211,11 +211,13 @@ public interface Mapping extends Closeable {
          */
         enum State {
             HANDSHAKE,
-            LOGIN_STARTED,
+            LOGIN,
             ENCRYPTING,
             ENCRYPTED,
             COMPRESSION,
             SUCCESS,
+            ;
+
         }
 
         /**
