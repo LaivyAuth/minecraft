@@ -8,6 +8,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.SecretKey;
+import java.lang.reflect.Field;
 import java.security.PublicKey;
 
 public final class Reflections {
@@ -23,6 +24,22 @@ public final class Reflections {
 
     public static void disconnect(@NotNull LoginListener listener, @NotNull String message) {
         listener.b(chat(message));
+    }
+
+    public static void setAuthenticating(@NotNull LoginListener listener) {
+        try {
+            @NotNull Field enumField = listener.getClass().getDeclaredField("h"); // State
+            enumField.setAccessible(true);
+
+            @NotNull Enum<?> enumObject = (Enum<?>) Class.forName("net.minecraft.server.network.LoginListener$EnumProtocolState").getEnumConstants()[2]; // AUTHENTICATING
+            enumField.set(listener, enumObject);
+        } catch (@NotNull NoSuchFieldException e) {
+            throw new RuntimeException("cannot find authenticating field", e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("cannot find login listener class", e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("cannot access authenticating field", e);
+        }
     }
 
     // Object

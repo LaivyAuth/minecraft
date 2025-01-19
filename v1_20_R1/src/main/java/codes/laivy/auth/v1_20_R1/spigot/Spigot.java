@@ -37,7 +37,6 @@ import org.jetbrains.annotations.UnknownNullability;
 import javax.crypto.SecretKey;
 import java.io.Flushable;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -279,27 +278,20 @@ final class Spigot extends NettyInjection implements Flushable {
                         return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("premium authentication.account verified", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()))));
                     }
                 } else if (connection.getType() == Account.Type.CRACKED) {
-                    try {
-                        @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
-                        @NotNull Field enumField = listener.getClass().getDeclaredField("h");
-                        enumField.setAccessible(true);
+                    @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
 
-                        @NotNull Enum<?> enumObject = (Enum<?>) Class.forName("net.minecraft.server.network.LoginListener$EnumProtocolState").getEnumConstants()[2];
-                        System.out.println("Enum: " + enumObject);
-                        enumField.set(listener, enumObject);
+                    // Mark as authenticating (skip the key validation process)
+                    Reflections.setAuthenticating(listener);
 
-                        listener.initUUID();
+                    // Initialize unique id
+                    listener.initUUID();
 
-                        // Set the attempt's unique id
-                        @NotNull GameProfile profile = getListenerProfile(listener);
-                        connection.setUniqueId(profile.getId());
+                    // Set the connection's unique id
+                    connection.setUniqueId(getListenerProfile(listener).getId());
 
-                        // Fire the events
-                        new FireEventsThread(connection, listener).start();
-                        return null;
-                    } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException | @NotNull ClassNotFoundException e) {
-                        throw new RuntimeException("cannot finish cracked user authentication", e);
-                    }
+                    // Fire the events
+                    new FireEventsThread(connection, listener).start();
+                    return null;
                 }
             }
         } else if (message instanceof PacketLoginOutSuccess) {
