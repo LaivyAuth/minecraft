@@ -1,4 +1,4 @@
-package codes.laivy.auth.utilities.netty;
+package codes.laivy.auth.netty;
 
 import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;

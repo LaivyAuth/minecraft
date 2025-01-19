@@ -93,7 +93,7 @@ public interface Mapping extends Closeable {
      *
      * @return An iterable collection of {@link Connection} objects.
      */
-    @NotNull Iterable<Connection> getConnections();
+    @NotNull Iterable<? extends Connection> getConnections();
 
     /**
      * Initializes the mapping, loading all necessary resources and performing any setup required

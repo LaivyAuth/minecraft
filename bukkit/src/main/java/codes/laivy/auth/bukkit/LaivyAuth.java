@@ -31,7 +31,7 @@ public final class LaivyAuth extends JavaPlugin {
      * You can change the value of this reference using reflections!
      */
     @SuppressWarnings("FieldMayBeFinal")
-    private @NotNull LaivyAuthApi<LaivyAuth> api;
+    private @NotNull LaivyAuthApi api;
 
     @SuppressWarnings("unchecked")
     public LaivyAuth() throws Throwable {
@@ -43,8 +43,8 @@ public final class LaivyAuth extends JavaPlugin {
         Mappings.saveAll(new File(getDataFolder(), "/mappings"));
 
         // Retrieve implementation api using reflections
-        @NotNull Class<LaivyAuthApi<LaivyAuth>> implementation = (Class<LaivyAuthApi<LaivyAuth>>) Class.forName("codes.laivy.auth.bukkit.impl.LaivyAuthApiImpl");
-        @NotNull Constructor<LaivyAuthApi<LaivyAuth>> constructor = implementation.getDeclaredConstructor(LaivyAuth.class);
+        @NotNull Class<LaivyAuthApi> implementation = (Class<LaivyAuthApi>) Class.forName("codes.laivy.auth.bukkit.impl.LaivyAuthApiImpl");
+        @NotNull Constructor<LaivyAuthApi> constructor = implementation.getDeclaredConstructor(LaivyAuth.class);
         constructor.setAccessible(true);
 
         instance = this;
@@ -60,7 +60,7 @@ public final class LaivyAuth extends JavaPlugin {
     // Getters
 
     /* It's static to make the things easier :) */
-    public static @NotNull LaivyAuthApi<LaivyAuth> getApi() {
+    public static @NotNull LaivyAuthApi getApi() {
         if (instance == null) {
             throw new IllegalStateException("The LaivyAuth plugin hasn't been loaded yet");
         }

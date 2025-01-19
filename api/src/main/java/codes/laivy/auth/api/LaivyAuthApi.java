@@ -4,18 +4,24 @@ import codes.laivy.auth.account.Account;
 import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.exception.AccountExistsException;
 import codes.laivy.auth.platform.Platform;
+import codes.laivy.auth.platform.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
+import java.io.File;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface LaivyAuthApi<T> extends Closeable {
+public interface LaivyAuthApi extends Closeable {
 
-    @NotNull T getPlugin();
+    @NotNull Object getPlugin();
     @NotNull Platform @NotNull [] getPlatforms();
 
     @NotNull Configuration getConfiguration();
+
+    @NotNull Version getVersion();
+
+    @NotNull File getDataFolder();
 
     // Accounts
 
