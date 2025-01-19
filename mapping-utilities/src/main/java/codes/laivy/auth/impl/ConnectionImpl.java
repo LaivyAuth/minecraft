@@ -183,7 +183,8 @@ public final class ConnectionImpl implements Connection, Flushable {
     @Override
     public boolean equals(@Nullable Object object) {
         if (this == object) return true;
-        if (!(object instanceof ConnectionImpl that)) return false;
+        if (!(object instanceof Connection)) return false;
+        @NotNull Connection that = (Connection) object;
         return Objects.equals(getConnectedAddress(), that.getConnectedAddress()) && Objects.equals(getConnectedPort(), that.getConnectedPort()) && getProtocol() == that.getProtocol() && Objects.equals(getName(), that.getName()) && getState() == that.getState() && Objects.equals(getUniqueId(), that.getUniqueId()) && Objects.equals(getAccount(), that.getAccount()) && getType() == that.getType() && Objects.equals(getReconnection(), that.getReconnection());
     }
     @Override
@@ -227,7 +228,8 @@ public final class ConnectionImpl implements Connection, Flushable {
         @Override
         public boolean equals(@Nullable Object object) {
             if (this == object) return true;
-            if (!(object instanceof ReconnectionImpl that)) return false;
+            if (!(object instanceof Reconnection)) return false;
+            @NotNull Reconnection that = (Reconnection) object;
             return Objects.equals(getCreationDate(), that.getCreationDate()) && Objects.equals(getExpirationDate(), that.getExpirationDate());
         }
         @Override
