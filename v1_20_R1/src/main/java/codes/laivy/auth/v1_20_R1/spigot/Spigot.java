@@ -8,7 +8,7 @@ import codes.laivy.auth.impl.ConnectionImpl;
 import codes.laivy.auth.mapping.Mapping.Connection;
 import codes.laivy.auth.platform.Protocol;
 import codes.laivy.auth.utilities.messages.PluginMessages;
-import codes.laivy.auth.utilities.netty.NettyInjection;
+import codes.laivy.auth.netty.NettyInjection;
 import codes.laivy.auth.v1_20_R1.Main;
 import codes.laivy.auth.v1_20_R1.reflections.ServerReflections;
 import com.mojang.authlib.GameProfile;
@@ -70,8 +70,10 @@ final class Spigot extends NettyInjection implements Flushable {
     public Spigot() {
         super(ServerReflections.getServerChannel());
 
-        // Set 'online-mode' to true
-        ServerReflections.setOnlineMode(true);
+        if (getConfiguration().getPremiumAuthentication().isEnabled()) {
+            // Set 'online-mode' to true
+            ServerReflections.setOnlineMode(true);
+        }
     }
 
     // Getters
@@ -137,7 +139,6 @@ final class Spigot extends NettyInjection implements Flushable {
 
             // Check cracked
             if (!checkCracked(channel, connection, account)) {
-                // todo: cracked users not allowed message
                 return null;
             }
 
@@ -212,7 +213,6 @@ final class Spigot extends NettyInjection implements Flushable {
 
                     // Check cracked
                     if (!checkCracked(channel, connection, account)) {
-                        // todo: cracked users not allowed message
                          return null;
                     }
 
@@ -358,8 +358,8 @@ final class Spigot extends NettyInjection implements Flushable {
         @NotNull Channel channel = context.channel();
         channel.write(new PacketLoginOutDisconnect(IChatBaseComponent.a(PluginMessages.getMessage("authentication error", PluginMessages.Placeholder.PREFIX))));
 
-        cause.printStackTrace();
-        // todo: exception handling
+        // Handle the exception
+        Main.getExceptionHandler().handle(cause);
     }
 
     // Classes

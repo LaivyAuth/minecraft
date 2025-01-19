@@ -2,6 +2,8 @@ package codes.laivy.auth.v1_20_R1;
 
 import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.config.Configuration;
+import codes.laivy.auth.exception.ExceptionHandler;
+import codes.laivy.auth.impl.ConnectionImpl;
 import codes.laivy.auth.mapping.Mapping;
 import codes.laivy.auth.platform.Platform;
 import codes.laivy.auth.platform.Version;
@@ -30,13 +32,17 @@ public final class Main implements Mapping {
     // Object
 
     private final @NotNull ClassLoader classLoader;
-    private final @NotNull LaivyAuthApi<?> api;
+    private final @NotNull LaivyAuthApi api;
     private final @NotNull Configuration configuration;
 
-    private Main(@NotNull ClassLoader classLoader, @NotNull LaivyAuthApi<?> api, @NotNull Configuration configuration) {
+    private final @NotNull ExceptionHandler exceptionHandler;
+
+    private Main(@NotNull ClassLoader classLoader, @NotNull LaivyAuthApi api, @NotNull Configuration configuration) {
         this.classLoader = classLoader;
         this.api = api;
         this.configuration = configuration;
+
+        this.exceptionHandler = new ExceptionHandler(api.getVersion(), api.getDataFolder());
 
         Main.instance = this;
     }
@@ -47,11 +53,15 @@ public final class Main implements Mapping {
     public @NotNull ClassLoader getClassLoader() {
         return classLoader;
     }
-    public static @NotNull LaivyAuthApi<?> getApi() {
+    public static @NotNull LaivyAuthApi getApi() {
         return instance.api;
     }
     public static @NotNull Configuration getConfiguration() {
         return instance.configuration;
+    }
+
+    public static @NotNull ExceptionHandler getExceptionHandler() {
+        return instance.exceptionHandler;
     }
 
     // Mapping
@@ -98,8 +108,8 @@ public final class Main implements Mapping {
     }
 
     @Override
-    public @NotNull Iterable<Connection> getConnections() {
-        return null;
+    public @NotNull Iterable<ConnectionImpl> getConnections() {
+        return ConnectionImpl.retrieve();
     }
 
     // Loaders
