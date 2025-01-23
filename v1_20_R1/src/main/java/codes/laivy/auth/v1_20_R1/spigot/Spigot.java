@@ -270,7 +270,6 @@ final class Spigot extends NettyInjection implements Flushable {
     @Override
     protected @UnknownNullability Object write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws IOException {
         @NotNull Channel channel = context.channel();
-        @Nullable InetAddress address = channel.remoteAddress() instanceof InetSocketAddress ? ((InetSocketAddress) channel.remoteAddress()).getAddress() : null;
 
         if (message instanceof @NotNull PacketLoginOutEncryptionBegin begin) {
             @NotNull ConnectionImpl connection = ConnectionImpl.retrieve(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));
@@ -286,9 +285,13 @@ final class Spigot extends NettyInjection implements Flushable {
                 // Check if the attempt type is null
                 if (connection.getType() == null) {
                     if (!connection.isReconnecting()) { // Tell the player to reconnect
+                        @Nullable InetAddress address = channel.remoteAddress() instanceof InetSocketAddress ? ((InetSocketAddress) channel.remoteAddress()).getAddress() : null;
+
+                        // Create reconnection and reset throttling
                         connection.setReconnection(connection.new ReconnectionImpl());
                         if (address != null) PlayerReflections.resetThrottling(address);
 
+                        // Disconnect
                         return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("premium authentication.account verified", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()))));
                     }
                 } else if (connection.getType() == Account.Type.CRACKED) {
@@ -405,7 +408,7 @@ final class Spigot extends NettyInjection implements Flushable {
     }
 
     @Override
-    protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) throws IOException {
+    protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) {
         @NotNull Channel channel = context.channel();
         channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("authentication error", PluginMessages.Placeholder.PREFIX))));
         channel.close();

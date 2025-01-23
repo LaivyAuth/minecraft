@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="76d35d64-16ae-43b5-aece-0e7c1c254630" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/reflections/PlayerReflections.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/reflections/PlayerReflections.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
