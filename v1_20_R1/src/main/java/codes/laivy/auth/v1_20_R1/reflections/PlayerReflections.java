@@ -3,6 +3,7 @@ package codes.laivy.auth.v1_20_R1.reflections;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.Channel;
 import net.minecraft.network.NetworkManager;
+import net.minecraft.server.network.HandshakeListener;
 import net.minecraft.server.network.LoginListener;
 import net.minecraft.server.network.ServerConnection;
 import org.bukkit.Bukkit;
@@ -11,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 
 import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.util.Map;
 
 public final class PlayerReflections {
 
@@ -45,6 +48,21 @@ public final class PlayerReflections {
             throw new RuntimeException("cannot retrieve game profile field from LoginListener");
         } catch (@NotNull IllegalAccessException e) {
             throw new RuntimeException(e);
+        }
+    }
+    public static void resetThrottling(@NotNull InetAddress address) {
+        try {
+            // Retrieve throttle tracker's map instance
+            @NotNull Field field = HandshakeListener.class.getDeclaredField("throttleTracker");
+            field.setAccessible(true);
+
+            //noinspection unchecked
+            @NotNull Map<InetAddress, Long> map = (Map<InetAddress, Long>) field.get(null);
+
+            // Remove from map
+            map.remove(address);
+        } catch (@NotNull NoSuchFieldException | @NotNull IllegalAccessException e) {
+            throw new RuntimeException("cannot retrieve/access throttle tracker field from handshake listener class", e);
         }
     }
 

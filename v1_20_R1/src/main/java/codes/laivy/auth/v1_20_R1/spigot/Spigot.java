@@ -11,6 +11,7 @@ import codes.laivy.auth.netty.NettyInjection;
 import codes.laivy.auth.platform.Protocol;
 import codes.laivy.auth.utilities.messages.PluginMessages;
 import codes.laivy.auth.v1_20_R1.Main;
+import codes.laivy.auth.v1_20_R1.reflections.PlayerReflections;
 import codes.laivy.auth.v1_20_R1.reflections.Reflections;
 import codes.laivy.auth.v1_20_R1.reflections.ServerReflections;
 import com.mojang.authlib.GameProfile;
@@ -269,6 +270,7 @@ final class Spigot extends NettyInjection implements Flushable {
     @Override
     protected @UnknownNullability Object write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws IOException {
         @NotNull Channel channel = context.channel();
+        @Nullable InetAddress address = channel.remoteAddress() instanceof InetSocketAddress ? ((InetSocketAddress) channel.remoteAddress()).getAddress() : null;
 
         if (message instanceof @NotNull PacketLoginOutEncryptionBegin begin) {
             @NotNull ConnectionImpl connection = ConnectionImpl.retrieve(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));
@@ -285,6 +287,8 @@ final class Spigot extends NettyInjection implements Flushable {
                 if (connection.getType() == null) {
                     if (!connection.isReconnecting()) { // Tell the player to reconnect
                         connection.setReconnection(connection.new ReconnectionImpl());
+                        if (address != null) PlayerReflections.resetThrottling(address);
+
                         return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("premium authentication.account verified", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()))));
                     }
                 } else if (connection.getType() == Account.Type.CRACKED) {
