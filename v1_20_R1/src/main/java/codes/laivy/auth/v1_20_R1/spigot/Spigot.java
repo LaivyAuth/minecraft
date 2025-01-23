@@ -158,7 +158,7 @@ final class Spigot extends NettyInjection implements Flushable {
                 connection.setChannel(channel);
                 Main.log.trace("Connection attempt '{}' reconnected.", connection.getName());
             } else {
-                connection = ConnectionImpl.create(channel, handshake, name);
+                connection = ConnectionImpl.create(Main.getApi(), channel, handshake, name);
                 Main.log.trace("Started new connection attempt '{}'.", connection.getName());
             }
 
@@ -284,7 +284,7 @@ final class Spigot extends NettyInjection implements Flushable {
                 // Check if the attempt type is null
                 if (connection.getType() == null) {
                     if (!connection.isReconnecting()) { // Tell the player to reconnect
-                        connection.setReconnection(new ConnectionImpl.ReconnectionImpl());
+                        connection.setReconnection(connection.new ReconnectionImpl());
                         return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("premium authentication.account verified", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()))));
                     }
                 } else if (connection.getType() == Account.Type.CRACKED) {

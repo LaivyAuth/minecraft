@@ -4,6 +4,7 @@ import codes.laivy.address.Address;
 import codes.laivy.address.port.Port;
 import codes.laivy.auth.Handshake;
 import codes.laivy.auth.account.Account;
+import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.platform.Protocol;
 import codes.laivy.auth.utilities.timeout.Timeout;
 import io.netty.channel.Channel;
@@ -12,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Flushable;
 import java.io.IOException;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -36,8 +36,8 @@ public final class ConnectionImpl implements Connection, Flushable {
         return connections.values().stream().filter(conn -> conn.getName().equals(name)).findFirst();
     }
 
-    public static @NotNull ConnectionImpl create(@NotNull Channel channel, @NotNull Handshake handshake, @NotNull String name) {
-        @NotNull ConnectionImpl connection = new ConnectionImpl(channel, handshake, name);
+    public static @NotNull ConnectionImpl create(@NotNull LaivyAuthApi api, @NotNull Channel channel, @NotNull Handshake handshake, @NotNull String name) {
+        @NotNull ConnectionImpl connection = new ConnectionImpl(api, channel, handshake, name);
 
         synchronized (lock) {
             connections.put(channel, connection);
@@ -47,6 +47,8 @@ public final class ConnectionImpl implements Connection, Flushable {
     }
 
     // Object
+
+    private final @NotNull LaivyAuthApi api;
 
     private volatile @NotNull Channel channel;
     private final @NotNull Timeout timeout;
@@ -68,7 +70,8 @@ public final class ConnectionImpl implements Connection, Flushable {
 
     private volatile boolean pending = false;
 
-    private ConnectionImpl(@NotNull Channel channel, @NotNull Handshake handshake, @NotNull String name) {
+    private ConnectionImpl(@NotNull LaivyAuthApi api, @NotNull Channel channel, @NotNull Handshake handshake, @NotNull String name) {
+        this.api = api;
         this.channel = channel;
 
         this.address = handshake.getAddress();
@@ -78,8 +81,7 @@ public final class ConnectionImpl implements Connection, Flushable {
         this.name = name;
 
         // Timeout
-        // todo: config.yml 'premium automatic auth.reconnect timeout' configuration plus some seconds
-        this.timeout = new Timeout(Duration.ofMinutes(3)).whenComplete((e) -> {
+        this.timeout = new Timeout(api.getConfiguration().getPremiumAuthentication().getReconnectTimeout()).whenComplete((e) -> {
             synchronized (lock) {
                 connections.remove(channel);
             }
@@ -199,7 +201,7 @@ public final class ConnectionImpl implements Connection, Flushable {
 
     // Classes
 
-    public static final class ReconnectionImpl implements Reconnection {
+    public final class ReconnectionImpl implements Reconnection {
 
         // Object
 
@@ -208,8 +210,7 @@ public final class ConnectionImpl implements Connection, Flushable {
 
         public ReconnectionImpl() {
             this.creationDate = Instant.now();
-            // todo: config.yml 'premium automatic auth.reconnect timeout' configuration
-            this.expirationDate = creationDate.plus(Duration.ofMinutes(1));
+            this.expirationDate = creationDate.plus(api.getConfiguration().getPremiumAuthentication().getReconnectTimeout());
         }
 
         // Getters
