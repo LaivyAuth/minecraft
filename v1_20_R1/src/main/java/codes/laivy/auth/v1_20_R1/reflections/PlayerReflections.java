@@ -13,6 +13,7 @@ import org.jetbrains.annotations.UnknownNullability;
 
 import java.lang.reflect.Field;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.Map;
 
 public final class PlayerReflections {
@@ -23,7 +24,16 @@ public final class PlayerReflections {
         @UnknownNullability ServerConnection connection = ((CraftServer) Bukkit.getServer()).getServer().ad();
         if (connection == null) throw new NullPointerException("cannot retrieve server connection");
 
-        return connection.e().stream().filter(network -> network.m.compareTo(channel) == 0).findFirst().orElseThrow(() -> new NullPointerException("Cannot retrieve network manager"));
+        @NotNull List<NetworkManager> networks = connection.e();
+        for (@NotNull NetworkManager network : networks) {
+            @NotNull Channel target = network.m;
+
+            if (channel.equals(target)) {
+                return network;
+            }
+        }
+
+        throw new NullPointerException("Cannot retrieve network manager");
     }
 
     public static byte[] getEncryptionBytes(@NotNull LoginListener listener) {
