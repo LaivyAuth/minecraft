@@ -144,14 +144,9 @@ final class Spigot extends NettyInjection implements Flushable {
             // Create connection instance
             @Nullable ConnectionImpl connection = ConnectionImpl.retrieve(name).orElse(null);
 
-            // Retrieve network manager and login listener
-            @NotNull NetworkManager manager = getNetworkManager(channel);
-            @NotNull LoginListener listener = (LoginListener) manager.j();
-
             // Check cracked
             if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && ((account != null && account.getType() == Account.Type.CRACKED) || (connection != null && connection.getType() == Account.Type.CRACKED))) {
-                Reflections.disconnect(listener, PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", (connection != null ? connection.getName() : account.getName())), new PluginMessages.Placeholder("uuid", String.valueOf((connection != null ? connection.getUniqueId() : account.getUniqueId())))));
-                return null;
+                return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", (connection != null ? connection.getName() : account.getName())), new PluginMessages.Placeholder("uuid", String.valueOf((connection != null ? connection.getUniqueId() : account.getUniqueId()))))));
             }
 
             // Create or retrieve existent attempt
