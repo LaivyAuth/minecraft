@@ -183,7 +183,7 @@ final class Paper extends NettyInjection implements Flushable {
                 @NotNull PublicKey publicKey = keys.getPublic(); // Get KeyPair's public key
 
                 // Address and encryption
-                boolean usesAuthentication = server.V(); // Uses Authentication
+                boolean usesAuthentication = Bukkit.getServer().getOnlineMode(); // Uses Authentication
                 byte[] encryption = getEncryptionBytes(listener);
                 @Nullable InetAddress address = usesAuthentication && remoteAddress instanceof InetSocketAddress ? ((InetSocketAddress) remoteAddress).getAddress() : null;
 
