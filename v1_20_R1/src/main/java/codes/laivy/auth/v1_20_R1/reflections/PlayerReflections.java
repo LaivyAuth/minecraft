@@ -76,6 +76,26 @@ public final class PlayerReflections {
         }
     }
 
+    public static void disconnect(@NotNull LoginListener listener, @NotNull String message) {
+        listener.b(ServerReflections.chat(message));
+    }
+
+    public static void setAuthenticating(@NotNull LoginListener listener) {
+        try {
+            @NotNull Field enumField = listener.getClass().getDeclaredField("h"); // State
+            enumField.setAccessible(true);
+
+            @NotNull Enum<?> enumObject = (Enum<?>) Class.forName("net.minecraft.server.network.LoginListener$EnumProtocolState").getEnumConstants()[2]; // AUTHENTICATING
+            enumField.set(listener, enumObject);
+        } catch (@NotNull NoSuchFieldException e) {
+            throw new RuntimeException("cannot find authenticating field", e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("cannot find login listener class", e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("cannot access authenticating field", e);
+        }
+    }
+
     // Object
 
     private PlayerReflections() {

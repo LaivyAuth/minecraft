@@ -12,7 +12,6 @@ import codes.laivy.auth.platform.Protocol;
 import codes.laivy.auth.utilities.messages.PluginMessages;
 import codes.laivy.auth.v1_20_R1.Main;
 import codes.laivy.auth.v1_20_R1.reflections.PlayerReflections;
-import codes.laivy.auth.v1_20_R1.reflections.Reflections;
 import codes.laivy.auth.v1_20_R1.reflections.ServerReflections;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.exceptions.AuthenticationUnavailableException;
@@ -53,7 +52,7 @@ import java.util.UUID;
 import static codes.laivy.auth.v1_20_R1.Main.getApi;
 import static codes.laivy.auth.v1_20_R1.Main.getConfiguration;
 import static codes.laivy.auth.v1_20_R1.reflections.PlayerReflections.*;
-import static codes.laivy.auth.v1_20_R1.reflections.Reflections.chat;
+import static codes.laivy.auth.v1_20_R1.reflections.ServerReflections.chat;
 
 final class Paper extends NettyInjection implements Flushable {
 
@@ -196,7 +195,7 @@ final class Paper extends NettyInjection implements Flushable {
                         throw new IllegalStateException("encryption arrays are not equals");
                     } else {
                         @NotNull SecretKey secretkey = begin.a(privateKey); // Get Secret Key
-                        secret = (new BigInteger(Reflections.digestData("", publicKey, secretkey))).toString(16);
+                        secret = (new BigInteger(ServerReflections.digestData("", publicKey, secretkey))).toString(16);
                     }
                 } catch (@NotNull CryptographyException exception) {
                     throw new IllegalStateException("cannot proceed with the cryptography", exception);
@@ -231,7 +230,7 @@ final class Paper extends NettyInjection implements Flushable {
 
                         // Check cracked
                         if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED || connection.getType() == Account.Type.CRACKED)) {
-                            Reflections.disconnect(listener, PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection.getUniqueId()))));
+                            PlayerReflections.disconnect(listener, PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection.getUniqueId()))));
                             return null;
                         }
 
@@ -297,7 +296,7 @@ final class Paper extends NettyInjection implements Flushable {
                     @NotNull LoginListener listener = (LoginListener) getNetworkManager(channel).j();
 
                     // Mark as authenticating (skip the key validation process)
-                    Reflections.setAuthenticating(listener);
+                    PlayerReflections.setAuthenticating(listener);
 
                     // Initialize unique id
                     listener.initUUID();
