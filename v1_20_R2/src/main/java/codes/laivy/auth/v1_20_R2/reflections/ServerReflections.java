@@ -1,6 +1,6 @@
-package codes.laivy.auth.v1_20_R1.reflections;
+package codes.laivy.auth.v1_20_R2.reflections;
 
-import codes.laivy.auth.v1_20_R1.Main;
+import codes.laivy.auth.v1_20_R2.Main;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import net.minecraft.SharedConstants;
@@ -10,7 +10,7 @@ import net.minecraft.server.network.ServerConnection;
 import net.minecraft.util.CryptographyException;
 import net.minecraft.util.MinecraftEncryption;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_20_R2.CraftServer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
