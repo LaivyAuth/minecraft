@@ -203,7 +203,7 @@ final class Paper extends NettyInjection implements Flushable {
 
                 // Check if the session was successful
                 @NotNull MinecraftSessionService service = server.am();
-                @NotNull GameProfile approved = service.hasJoinedServer(new GameProfile(null, connection.getName()), secret, address);
+                @Nullable GameProfile approved = service.hasJoinedServer(new GameProfile(null, connection.getName()), secret, address);
 
                 try {
                     if (approved != null) try {
@@ -218,7 +218,7 @@ final class Paper extends NettyInjection implements Flushable {
                         Main.getExceptionHandler().handle(throwable);
                     } else try {
                         if (account != null && account.getType() == Account.Type.PREMIUM) {
-                            listener.b(chat(PluginMessages.getMessage("premium authentication.premium account required error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()))));
+                            PlayerReflections.disconnect(listener, PluginMessages.getMessage("premium authentication.premium account required error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName())));
                             return null;
                         }
 
