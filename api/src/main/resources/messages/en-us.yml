@@ -45,6 +45,15 @@ accounts:
   #   - %address% * The used ip address by this player to connect
   maximum connected per ip: "%prefix%\n\n&cYou cannot connect the server because you reached the maximum connections per address allowed for you."
 
+  # This message is displayed when a player tries to connect to the server but there's already a player
+  # with the exactly same nickname playing.
+  #
+  # Message Type: Disconnect Screen
+  # Prefixes:
+  #   - %prefix% * The plug-in's prefix
+  #   - %nickname% * The current number of accounts connected at this address
+  nickname already connected: "%prefix%\n\n&cThere's already a player with this nickname connected at the server."
+
 # Messages from the 'premium automatic auth' section at the configuration file
 premium authentication:
 
