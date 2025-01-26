@@ -1,7 +1,7 @@
 package codes.laivy.auth.bukkit.impl;
 
 import codes.laivy.auth.account.Account;
-import codes.laivy.auth.api.LaivyAuthApi;
+import codes.laivy.auth.bukkit.api.LaivyAuthApi;
 import codes.laivy.auth.bukkit.LaivyAuth;
 import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.exception.AccountExistsException;
@@ -13,7 +13,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -136,13 +138,37 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
             lock.unlock();
         }
     }
-
     @Override
     public @NotNull Optional<Account> getAccount(@NotNull UUID uuid) {
         lock.lock();
 
         try {
             return Optional.ofNullable(accounts.getOrDefault(uuid, null));
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public @NotNull Account getAccount(@NotNull Player player) {
+        lock.lock();
+
+        try {
+            if (!accounts.containsKey(player.getUniqueId())) {
+                throw new IllegalStateException("cannot retrieve an account for the online player '" + player.getName() +"'");
+            }
+
+            return accounts.get(player.getUniqueId());
+        } finally {
+            lock.unlock();
+        }
+    }
+    @Override
+    public @NotNull Optional<Account> getAccount(@NotNull OfflinePlayer player) {
+        lock.lock();
+
+        try {
+            return Optional.ofNullable(accounts.getOrDefault(player.getUniqueId(), null));
         } finally {
             lock.unlock();
         }

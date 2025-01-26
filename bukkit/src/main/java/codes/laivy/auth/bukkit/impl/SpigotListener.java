@@ -34,7 +34,7 @@ public final class SpigotListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     private void quit(@NotNull PlayerQuitEvent e) {
-        @NotNull Account data = LaivyAuth.getApi().getAccount(e.getPlayer().getUniqueId()).orElseThrow(() -> new NullPointerException("cannot find the account for player '" + e.getPlayer().getName() + "'"));
+        @NotNull Account data = LaivyAuth.getApi().getAccount(e.getPlayer());
         data.setAuthenticated(false);
 
         Bukkit.getConsoleSender().sendMessage("§8(§c-§8) Player §7" + e.getPlayer().getName() + "§8 left the server");
@@ -44,7 +44,7 @@ public final class SpigotListener implements Listener {
     }
     @EventHandler(priority = EventPriority.LOW)
     private void join(@NotNull PlayerJoinEvent e) {
-        @NotNull Account data = LaivyAuth.getApi().getAccount(e.getPlayer().getUniqueId()).orElseThrow(() -> new NullPointerException("cannot find the account for player '" + e.getPlayer().getName() + "'"));
+        @NotNull Account data = LaivyAuth.getApi().getAccount(e.getPlayer());
 
         if (e.getPlayer().isOnline()) {
             e.getPlayer().setWalkSpeed(0.2f);

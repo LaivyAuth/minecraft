@@ -1,6 +1,6 @@
 package codes.laivy.auth.bukkit;
 
-import codes.laivy.auth.api.LaivyAuthApi;
+import codes.laivy.auth.bukkit.api.LaivyAuthApi;
 import codes.laivy.auth.bukkit.impl.AuthenticationCommands;
 import codes.laivy.auth.bukkit.impl.SpigotListener;
 import codes.laivy.auth.utilities.resources.Mappings;
