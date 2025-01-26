@@ -36,6 +36,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
     // Static initializers
 
+    // todo: fix the logs
     private static final @NotNull Logger log = LoggerFactory.getLogger(LaivyAuthApiImpl.class);
 
     // Object
@@ -73,7 +74,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
                 if (Mapping.class.isAssignableFrom(main)) {
                     //noinspection unchecked
-                    @NotNull Constructor<Mapping> constructor = ((Class<Mapping>) main).getDeclaredConstructor(ClassLoader.class, LaivyAuthApi.class, Configuration.class);
+                    @NotNull Constructor<Mapping> constructor = ((Class<Mapping>) main).getDeclaredConstructor(ClassLoader.class, codes.laivy.auth.api.LaivyAuthApi.class, Configuration.class);
                     constructor.setAccessible(true);
 
                     @NotNull Mapping mapping = constructor.newInstance(classLoader, this, getConfiguration());
@@ -86,7 +87,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
                 log.atError().setCause(e).log();
             }
         } catch (@NotNull NoSuchMethodException e) {
-            log.error("Cannot find a valid constructor of mapping '{}'. It should have a constructor with '{}', '{}' and '{}' parameters.", mappingFile.getName(), ClassLoader.class, LaivyAuthApi.class, Configuration.class);
+            log.error("Cannot find a valid constructor of mapping '{}'. It should have a constructor with '{}', '{}' and '{}' parameters.", mappingFile.getName(), ClassLoader.class, codes.laivy.auth.api.LaivyAuthApi.class, Configuration.class);
             log.atError().setCause(e).log();
         } catch (@NotNull ClassNotFoundException e) {
             log.error("Cannot find main class of mapping '{}'. It should have the 'Main-Class' attribute at jar meta file.", mappingFile.getName());
@@ -100,18 +101,21 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
         }
 
         // Get compatible module and load it
-        for (@NotNull Mapping mapping : mappings) if (mapping.isCompatible()) try {
-            this.mapping = mapping;
-            mapping.start();
-            successful = true;
+        for (@NotNull Mapping mapping : mappings) {
+            System.out.println("Mapping: " + mapping.getName() + ", compatible: " + mapping.isCompatible());
+            if (mapping.isCompatible()) try {
+                this.mapping = mapping;
+                mapping.start();
+                successful = true;
 
-            log.info("Successfully loaded mapping {}", mapping.getName());
-            break;
-        } catch (@NotNull Throwable e) {
-            this.mapping = null; // Remove mapping reference, it's not compatible.
+                log.info("Successfully loaded mapping {}", mapping.getName());
+                break;
+            } catch (@NotNull Throwable e) {
+                this.mapping = null; // Remove mapping reference, it's not compatible.
 
-            log.error("Cannot load mapping '{}': {}", mapping.getName(), e.getMessage());
-            log.atError().setCause(e).log();
+                log.error("Cannot load mapping '{}': {}", mapping.getName(), e.getMessage());
+                log.atError().setCause(e).log();
+            }
         }
 
         // Check if there's a loaded module

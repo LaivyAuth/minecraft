@@ -21,11 +21,6 @@ public final class ExceptionHandler {
     public ExceptionHandler(@NotNull Version version, @NotNull File folder) {
         this.version = version;
         this.folder = folder;
-
-        // Create folder if not exists
-        if (!folder.exists() && !folder.mkdirs()) {
-            throw new IllegalStateException("cannot create exceptions folder");
-        }
     }
 
     // Getters
@@ -40,6 +35,11 @@ public final class ExceptionHandler {
     // Modules
 
     private @NotNull File file() {
+        // Create folder if not exists
+        if (!getFolder().exists() && !getFolder().mkdirs()) {
+            throw new IllegalStateException("cannot create exceptions folder");
+        }
+
         // Create folder
         @NotNull String date = new SimpleDateFormat("MM-dd-yyyy").format(new Date());
         @NotNull File folder = new File(getFolder(), date + "/");

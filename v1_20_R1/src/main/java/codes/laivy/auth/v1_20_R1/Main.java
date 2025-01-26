@@ -129,7 +129,7 @@ public final class Main implements Mapping {
             ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
                 log.atError().setCause(e).log("An unknown error occurred trying to load mapping");
             } catch (@NotNull InvocationTargetException e) {
-                log.atError().setCause(e).log("Cannot initialize spigot mapping: {}", e.getMessage());
+                log.atError().setCause(e).log("Cannot initialize paper mapping: {}", e.getMessage());
             }
         } else if (Platform.SPIGOT.isCompatible()) {
             try {
@@ -152,22 +152,30 @@ public final class Main implements Mapping {
     }
     @Override
     public void close() {
-        // todo: check this
-        if (Platform.SPIGOT.isCompatible()) try {
-            @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
+        try {
+            if (Platform.PAPER.isCompatible()) {
+                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.paper.Paper");
 
-            @NotNull Method method = target.getDeclaredMethod("interrupt");
-            method.setAccessible(true);
+                @NotNull Method method = target.getDeclaredMethod("interrupt");
+                method.setAccessible(true);
 
-            method.invoke(null);
+                method.invoke(null);
+            } else if (Platform.SPIGOT.isCompatible()) {
+                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
+
+                @NotNull Method method = target.getDeclaredMethod("interrupt");
+                method.setAccessible(true);
+
+                method.invoke(null);
+            } else if (Platform.SPONGE.isCompatible()) {
+                throw new UnsupportedOperationException();
+            } else {
+                throw new UnsupportedOperationException();
+            }
         } catch (@NotNull ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
             log.atError().setCause(e).log("An unknown error occurred trying to unload mapping");
         } catch (@NotNull InvocationTargetException e) {
-            log.atError().setCause(e).log("Cannot interrupt spigot mapping: {}", e.getMessage());
-        } else if (Platform.SPONGE.isCompatible()) {
-            throw new UnsupportedOperationException();
-        } else {
-            throw new UnsupportedOperationException();
+            log.atError().setCause(e).log("Cannot interrupt mapping: {}", e.getMessage());
         }
     }
 

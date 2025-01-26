@@ -3,9 +3,11 @@ package codes.laivy.auth.v1_20_R2;
 import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.config.Configuration;
 import codes.laivy.auth.exception.ExceptionHandler;
+import codes.laivy.auth.impl.ConnectionImpl;
 import codes.laivy.auth.mapping.Mapping;
 import codes.laivy.auth.platform.Platform;
 import codes.laivy.auth.platform.Version;
+import codes.laivy.auth.v1_20_R2.reflections.ServerReflections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 import org.slf4j.Logger;
@@ -27,7 +29,6 @@ public final class Main implements Mapping {
         return "1.20.2";
     }
 
-    // todo: maping name at the logger name
     public static final @NotNull Logger log = LoggerFactory.getLogger(name());
 
     // Object
@@ -93,24 +94,26 @@ public final class Main implements Mapping {
     @Override
     public boolean isCompatible() {
         try {
+            // todo: remove debugs
             // Check by compatible platforms
             if (Arrays.stream(getPlatforms()).noneMatch(Platform::isCompatible)) {
                 return false;
             }
 
             // Retrieve the protocol version
-            int protocol = getProtocolVersion();
+            int protocol = ServerReflections.getProtocolVersion();
 
             // Finish
             return Arrays.stream(getCompatibleVersions()).anyMatch(compatible -> compatible == protocol);
         } catch (@NotNull Throwable throwable) {
+            throwable.printStackTrace();
             return false;
         }
     }
 
     @Override
-    public @NotNull Iterable<Connection> getConnections() {
-        return null;
+    public @NotNull Iterable<ConnectionImpl> getConnections() {
+        return ConnectionImpl.retrieve();
     }
 
     // Loaders
@@ -129,7 +132,7 @@ public final class Main implements Mapping {
             ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
                 log.atError().setCause(e).log("An unknown error occurred trying to load mapping");
             } catch (@NotNull InvocationTargetException e) {
-                log.atError().setCause(e).log("Cannot initialize spigot mapping: {}", e.getMessage());
+                log.atError().setCause(e).log("Cannot initialize paper mapping: {}", e.getMessage());
             }
         } else if (Platform.SPIGOT.isCompatible()) {
             try {
@@ -139,6 +142,7 @@ public final class Main implements Mapping {
                 method.setAccessible(true);
 
                 method.invoke(null);
+                System.out.println("Done with spigot!!!");
             } catch (@NotNull ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
                 log.atError().setCause(e).log("An unknown error occurred trying to load mapping");
             } catch (@NotNull InvocationTargetException e) {
@@ -152,51 +156,31 @@ public final class Main implements Mapping {
     }
     @Override
     public void close() {
-        if (Platform.SPIGOT.isCompatible()) try {
-            @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R2.spigot.Spigot");
+        try {
+            if (Platform.PAPER.isCompatible()) {
+                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R2.paper.Paper");
 
-            @NotNull Method method = target.getDeclaredMethod("interrupt");
-            method.setAccessible(true);
+                @NotNull Method method = target.getDeclaredMethod("interrupt");
+                method.setAccessible(true);
 
-            method.invoke(null);
+                method.invoke(null);
+            } else if (Platform.SPIGOT.isCompatible()) {
+                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R2.spigot.Spigot");
+
+                @NotNull Method method = target.getDeclaredMethod("interrupt");
+                method.setAccessible(true);
+
+                method.invoke(null);
+            } else if (Platform.SPONGE.isCompatible()) {
+                throw new UnsupportedOperationException();
+            } else {
+                throw new UnsupportedOperationException();
+            }
         } catch (@NotNull ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
             log.atError().setCause(e).log("An unknown error occurred trying to unload mapping");
         } catch (@NotNull InvocationTargetException e) {
-            log.atError().setCause(e).log("Cannot interrupt spigot mapping: {}", e.getMessage());
-        } else if (Platform.SPONGE.isCompatible()) {
-            throw new UnsupportedOperationException();
-        } else {
-            throw new UnsupportedOperationException();
+            log.atError().setCause(e).log("Cannot interrupt mapping: {}", e.getMessage());
         }
-    }
-
-    // Utilities
-
-    private static int getProtocolVersion() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        // Constants
-        @NotNull Class<?> sharedConstantsClass = Class.forName("net.minecraft.SharedConstants");
-        @NotNull Class<?> worldVersionClass = Class.forName("net.minecraft.WorldVersion");
-
-        // Start retrieving
-        @NotNull Field field = sharedConstantsClass.getDeclaredField("bi");
-        field.setAccessible(true);
-
-        @NotNull Object worldVersion = field.get(null);
-
-        if (!worldVersionClass.isAssignableFrom(worldVersion.getClass())) {
-            throw new ClassCastException("cannot cast '" + worldVersion.getClass() + "' into a valid '" + worldVersionClass + "' class");
-        }
-
-        @NotNull Method version = worldVersion.getClass().getDeclaredMethod("e");
-        version.setAccessible(true);
-
-        @NotNull Object versionObject = version.invoke(worldVersion);
-
-        if (!Integer.class.isAssignableFrom(versionObject.getClass())) {
-            throw new ClassCastException("cannot cast '" + versionObject.getClass() + "' into a valid '" + Integer.class + "' class");
-        }
-
-        return (int) versionObject;
     }
 
 }
