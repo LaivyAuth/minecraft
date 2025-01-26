@@ -25,7 +25,7 @@ public final class Main implements Mapping {
     private static @UnknownNullability Main instance;
 
     private static @NotNull String name() {
-        return "1.20.1";
+        return "1.20.0/1";
     }
 
     public static final @NotNull Logger log = LoggerFactory.getLogger(name());
@@ -74,7 +74,7 @@ public final class Main implements Mapping {
 
     @Override
     public @NotNull String getVendor() {
-        return "LaivyCodes (https://laivy.codes/)";
+        return "LaivyAuth (https://laivyauth.com/)";
     }
 
     @Override
@@ -117,21 +117,7 @@ public final class Main implements Mapping {
 
     @Override
     public void start() {
-        if (Platform.PAPER.isCompatible()) {
-            try {
-                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.paper.Paper");
-
-                @NotNull Method method = target.getDeclaredMethod("initialize");
-                method.setAccessible(true);
-
-                method.invoke(null);
-            } catch (@NotNull
-            ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
-                log.atError().setCause(e).log("An unknown error occurred trying to load mapping");
-            } catch (@NotNull InvocationTargetException e) {
-                log.atError().setCause(e).log("Cannot initialize paper mapping: {}", e.getMessage());
-            }
-        } else if (Platform.SPIGOT.isCompatible()) {
+        if (Platform.SPIGOT.isCompatible() || Platform.PAPER.isCompatible()) {
             try {
                 @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
 
@@ -142,7 +128,7 @@ public final class Main implements Mapping {
             } catch (@NotNull ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
                 log.atError().setCause(e).log("An unknown error occurred trying to load mapping");
             } catch (@NotNull InvocationTargetException e) {
-                log.atError().setCause(e).log("Cannot initialize spigot mapping: {}", e.getMessage());
+                log.atError().setCause(e).log("Cannot initialize spigot/paper mapping: {}", e.getMessage());
             }
         } else if (Platform.SPONGE.isCompatible()) {
             throw new UnsupportedOperationException();
