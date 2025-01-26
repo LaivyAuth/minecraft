@@ -4,7 +4,7 @@
 # Please don't change this :(
 prefix: "&f&lʟᴀɪᴠʏ &b&lᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ"
 
-# If any exception or error occurrs when trying to join the server or authenticating, this message will be thrown
+# If any unexpected exception or error occurrs when trying to join the server or authenticating, this message will be thrown
 #
 # Message Type: Disconnect Screen/Chat
 # Prefixes:
@@ -30,6 +30,20 @@ prevent double join error: "%prefix%\n\n&cThere's already a player with nickname
 #   - %current_nickname% * The nickname used to connect
 #   - %account_nickname% * The nickname that should be used
 nickname case sensitive error: "%prefix%\n\n&cYou cannot use the nickname '%current_nickname%' to connect this server because there's an account with the nickname '%account_nickname%' already registered, it's case-sensitive!"
+
+# Messages related accounts
+accounts:
+
+  # This message is displayed when the player reach the maximum allowed connected accounts per IP address
+  # controlled by the 'maximum authenticated accounts per ip' section at the configuration file.
+  #
+  # Message Type: Disconnect Screen
+  # Prefixes:
+  #   - %prefix% * The plug-in's prefix
+  #   - %current% * The current number of accounts connected at this address
+  #   - %maximum% * The maximum accounts allowed per ip address
+  #   - %address% * The used ip address by this player to connect
+  maximum connected per ip: "%prefix%\n\n&cYou cannot connect the server because you reached the maximum connections per address allowed for you."
 
 # Messages from the 'premium automatic auth' section at the configuration file
 premium authentication:

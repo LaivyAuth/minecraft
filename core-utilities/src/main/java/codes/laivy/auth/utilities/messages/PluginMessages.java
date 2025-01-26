@@ -98,6 +98,10 @@ public final class PluginMessages {
             this.id = id;
             this.content = content;
         }
+        public Placeholder(@NotNull String id, @NotNull Object content) {
+            this.id = id;
+            this.content = String.valueOf(content);
+        }
 
         // Getters
 

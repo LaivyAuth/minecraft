@@ -52,7 +52,8 @@ import java.util.UUID;
 
 import static codes.laivy.auth.v1_20_R2.Main.getApi;
 import static codes.laivy.auth.v1_20_R2.Main.getConfiguration;
-import static codes.laivy.auth.v1_20_R2.reflections.PlayerReflections.*;
+import static codes.laivy.auth.v1_20_R2.reflections.PlayerReflections.getEncryptionBytes;
+import static codes.laivy.auth.v1_20_R2.reflections.PlayerReflections.getNetworkManager;
 import static codes.laivy.auth.v1_20_R2.reflections.ServerReflections.chat;
 
 final class Spigot extends NettyInjection implements Flushable {
@@ -114,12 +115,25 @@ final class Spigot extends NettyInjection implements Flushable {
             // Retrieve version (int)
             int version = packet.a(); // Protocol Version
 
+            // Retrieve address and port
+            @NotNull Address address = Address.parse(packet.d());
+            @NotNull Port port = Port.create(packet.e());
+
+            // Check connections at this address
+            int maximumConnections = getConfiguration().getAccounts().getMaximumAuthenticatedPerIp();
+            if (maximumConnections > 0) {
+                long connections = Bukkit.getOnlinePlayers().stream().filter(player -> player.getAddress() != null && player.getAddress().getHostName().equals(address.toString())).count();
+
+                if (connections > maximumConnections) {
+                    return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("accounts.maximum connected per ip", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("current", connections), new PluginMessages.Placeholder("maximum", maximumConnections), new PluginMessages.Placeholder("address", address.toString()))));
+                }
+            }
+
             // Create a handshake status
             Handshake.create(
                     channel,
                     Protocol.getByProtocol(version),
-                    Address.parse(packet.d()), // Connection Address
-                    Port.create(packet.e()) // Connection Port
+                    address, port
             );
         } else if (message instanceof @NotNull PacketLoginInStart packet) {
             @NotNull Handshake handshake = Handshake.getAndRemove(channel).orElseThrow(() -> new IllegalStateException("client send login start packet before handshake"));
