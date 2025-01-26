@@ -12,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
@@ -48,18 +50,6 @@ public final class PlayerReflections {
             throw new RuntimeException();
         }
     }
-    public static @NotNull GameProfile getListenerProfile(@NotNull LoginListener listener) {
-        try {
-            @NotNull Field field = LoginListener.class.getDeclaredField("k");
-            field.setAccessible(true);
-
-            return ((GameProfile) field.get(listener));
-        } catch (@NotNull NoSuchFieldException e) {
-            throw new RuntimeException("cannot retrieve game profile field from LoginListener");
-        } catch (@NotNull IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
     public static void resetThrottling(@NotNull InetAddress address) {
         try {
             // Retrieve throttle tracker's map instance
@@ -93,6 +83,19 @@ public final class PlayerReflections {
             throw new RuntimeException("cannot find login listener class", e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException("cannot access authenticating field", e);
+        }
+    }
+
+    public static @NotNull GameProfile initializeUniqueId(@NotNull LoginListener listener, @NotNull String name) {
+        try {
+            @NotNull Method initializeMethod = listener.getClass().getDeclaredMethod("b", String.class);
+            initializeMethod.setAccessible(true);
+
+            return (GameProfile) initializeMethod.invoke(listener, name);
+        } catch (@NotNull NoSuchMethodException e) {
+            throw new RuntimeException("cannot find uuid initialization method", e);
+        } catch (@NotNull InvocationTargetException | @NotNull IllegalAccessException e) {
+            throw new RuntimeException("cannot invoke or access uuid initialization method", e);
         }
     }
 

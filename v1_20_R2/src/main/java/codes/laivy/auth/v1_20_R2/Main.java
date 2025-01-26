@@ -2,6 +2,7 @@ package codes.laivy.auth.v1_20_R2;
 
 import codes.laivy.auth.api.LaivyAuthApi;
 import codes.laivy.auth.config.Configuration;
+import codes.laivy.auth.exception.ExceptionHandler;
 import codes.laivy.auth.mapping.Mapping;
 import codes.laivy.auth.platform.Platform;
 import codes.laivy.auth.platform.Version;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.UnknownNullability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,10 +36,14 @@ public final class Main implements Mapping {
     private final @NotNull LaivyAuthApi api;
     private final @NotNull Configuration configuration;
 
+    private final @NotNull ExceptionHandler exceptionHandler;
+
     private Main(@NotNull ClassLoader classLoader, @NotNull LaivyAuthApi api, @NotNull Configuration configuration) {
         this.classLoader = classLoader;
         this.api = api;
         this.configuration = configuration;
+
+        this.exceptionHandler = new ExceptionHandler(api.getVersion(), new File(api.getDataFolder(), "exceptions/"));
 
         Main.instance = this;
     }
@@ -53,6 +59,10 @@ public final class Main implements Mapping {
     }
     public static @NotNull Configuration getConfiguration() {
         return instance.configuration;
+    }
+
+    public static @NotNull ExceptionHandler getExceptionHandler() {
+        return instance.exceptionHandler;
     }
 
     // Mapping
