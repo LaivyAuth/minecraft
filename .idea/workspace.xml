@@ -6,8 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="76d35d64-16ae-43b5-aece-0e7c1c254630" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/paper/Paper.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R2/src/main/java/codes/laivy/auth/v1_20_R2/paper/Paper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1_20_R2/src/main/java/codes/laivy/auth/v1_20_R2/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R2/src/main/java/codes/laivy/auth/v1_20_R2/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1_20_R2/src/main/java/codes/laivy/auth/v1_20_R2/reflections/ServerReflections.java" beforeDir="false" afterPath="$PROJECT_DIR$/v1_20_R2/src/main/java/codes/laivy/auth/v1_20_R2/reflections/ServerReflections.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,12 +77,13 @@
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last.edited.regexp": "&7Ata",
-    "last_opened_file_path": "G:/Meu Drive/Codes/LaivyAuth/v1_20_R2/src/main/java/codes/laivy/auth/v1_20_R2",
+    "last_opened_file_path": "G:/Meu Drive/Codes/LaivyAuth/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java",
     "onboarding.tips.debug.path": "G:/Meu Drive/Codes/LaivyAuth/mapping-utilities/src/main/java/codes/laivy/auth/Main.java",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.1484375",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "Errors"
+    "settings.editor.selected.configurable": "Errors",
+    "two.files.diff.last.used.file": "G:/Meu Drive/Codes/LaivyAuth/v1_20_R1/src/main/java/codes/laivy/auth/v1_20_R1/spigot/Spigot.java"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -104,11 +106,11 @@
       <recent name="codes.laivy.auth.impl" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="codes.laivy.auth.v1_20_R2.paper" />
       <recent name="codes.laivy.auth.v1_20_R1.paper" />
       <recent name="codes.laivy.auth.utilities.timeout" />
       <recent name="codes.laivy.auth.delivery" />
       <recent name="codes.laivy.auth.event" />
-      <recent name="codes.laivy.auth.v1_20_R1.injection" />
     </key>
   </component>
   <component name="RunAnythingCache">
