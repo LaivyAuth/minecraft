@@ -56,7 +56,7 @@ public final class ServerReflections {
     }
     public static int getProtocolVersion() throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         // Start retrieving
-        @NotNull Field field = SharedConstants.class.getDeclaredField("bi");
+        @NotNull Field field = SharedConstants.class.getDeclaredField("bk");
         field.setAccessible(true);
 
         @NotNull Object worldVersion = field.get(null);

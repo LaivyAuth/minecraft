@@ -106,7 +106,6 @@ public final class Main implements Mapping {
             // Finish
             return Arrays.stream(getCompatibleVersions()).anyMatch(compatible -> compatible == protocol);
         } catch (@NotNull Throwable throwable) {
-            throwable.printStackTrace();
             return false;
         }
     }
