@@ -35,7 +35,7 @@ public final class PlayerReflections {
             }
         }
 
-        throw new NullPointerException("Cannot retrieve network manager");
+        throw new NullPointerException("cannot retrieve network manager");
     }
 
     public static byte[] getEncryptionBytes(@NotNull LoginListener listener) {

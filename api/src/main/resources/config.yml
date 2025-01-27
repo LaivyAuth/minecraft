@@ -78,18 +78,15 @@ weak passwords:
 unauthenticated:
   # The time in seconds the player must authenticate
   # or will get kicked due to timeout
-  timeout: 120
+  timeout: 200
 
   # Controls the unauthenticated player's movement
   movement:
 
     # You can control the radius in blocks between the spawn point the player
-    # could freely move, it the player goes away from this radius, they'll be blocked
+    # could freely move, if the player goes away from this radius, they'll be blocked
     # from moving. If this is set to '0', the player will not be able to move
     radius: 0
-
-    # If false, the player will not be able to jump
-    allow jumps: false
 
   # It controls the player's visibility by their own selves and by another players
   visilibity:

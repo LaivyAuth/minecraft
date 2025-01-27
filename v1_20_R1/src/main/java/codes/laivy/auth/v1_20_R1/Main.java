@@ -139,14 +139,7 @@ public final class Main implements Mapping {
     @Override
     public void close() {
         try {
-            if (Platform.PAPER.isCompatible()) {
-                @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.paper.Paper");
-
-                @NotNull Method method = target.getDeclaredMethod("interrupt");
-                method.setAccessible(true);
-
-                method.invoke(null);
-            } else if (Platform.SPIGOT.isCompatible()) {
+             if (Platform.SPIGOT.isCompatible() || Platform.PAPER.isCompatible()) {
                 @NotNull Class<?> target = Class.forName("codes.laivy.auth.v1_20_R1.spigot.Spigot");
 
                 @NotNull Method method = target.getDeclaredMethod("interrupt");
