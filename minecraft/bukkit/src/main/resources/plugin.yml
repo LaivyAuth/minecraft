@@ -1,0 +1,17 @@
+name: "LaivyAuth"
+description: "Authentication system for cracked and premium players"
+version: ${project.version}
+main: com.laivyauth.bukkit.LaivyAuth
+author: "Laivy (@danielmeinicke)"
+api-version: 1.13
+
+softdepend:
+  - Metadotis
+  - Oraxen
+
+commands:
+  login:
+    description: "The main authentication command"
+    aliases: "authenticate"
+  register:
+    description: "The main registering command"

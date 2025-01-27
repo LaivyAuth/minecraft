@@ -1,0 +1,4 @@
+# Algumas mensagens são exibidas diretamente no console
+# para auxiliar no arquivamento do logging e para manter o
+# console bem informado. Como o console não possui uma linguagem própria
+# todas as mensagens são naturalmente em inglês
