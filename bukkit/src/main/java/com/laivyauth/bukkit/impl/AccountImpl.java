@@ -1,6 +1,10 @@
 package com.laivyauth.bukkit.impl;
 
 import codes.laivy.address.Address;
+import codes.laivy.serializable.annotations.serializers.MethodSerialization;
+import codes.laivy.serializable.context.Context;
+import codes.laivy.serializable.context.MapContext;
+import codes.laivy.serializable.json.JsonSerializer;
 import com.laivyauth.api.account.Account;
 import com.laivyauth.api.account.Activity;
 import com.laivyauth.bukkit.LaivyAuth;
@@ -8,10 +12,6 @@ import com.laivyauth.bukkit.event.PlayerAuthenticateEvent;
 import com.laivyauth.bukkit.event.PlayerPasswordChangeEvent;
 import com.laivyauth.bukkit.event.PlayerUnauthenticateEvent;
 import com.laivyauth.bukkit.event.PlayerUnregisterEvent;
-import codes.laivy.serializable.annotations.serializers.MethodSerialization;
-import codes.laivy.serializable.context.Context;
-import codes.laivy.serializable.context.MapContext;
-import codes.laivy.serializable.json.JsonSerializer;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

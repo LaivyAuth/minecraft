@@ -1,18 +1,18 @@
 package com.laivyauth.bukkit.impl;
 
-import com.laivyauth.api.account.Account;
-import com.laivyauth.bukkit.LaivyAuth;
-import com.laivyauth.bukkit.api.LaivyAuthApi;
-import com.laivyauth.api.config.Configuration;
-import com.laivyauth.api.exception.AccountExistsException;
-import com.laivyauth.api.mapping.Mapping;
-import com.laivyauth.api.platform.Platform;
-import com.laivyauth.api.platform.Version;
 import codes.laivy.serializable.Serializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.laivyauth.api.account.Account;
+import com.laivyauth.api.config.Configuration;
+import com.laivyauth.api.exception.AccountExistsException;
+import com.laivyauth.api.mapping.Mapping;
+import com.laivyauth.api.platform.Platform;
+import com.laivyauth.api.platform.Version;
+import com.laivyauth.bukkit.LaivyAuth;
+import com.laivyauth.bukkit.api.LaivyAuthApi;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;

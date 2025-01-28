@@ -1,7 +1,7 @@
 package com.laivyauth.bukkit.impl;
 
-import com.laivyauth.api.account.Account;
 import com.laivyauth.api.LaivyAuthApi;
+import com.laivyauth.api.account.Account;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

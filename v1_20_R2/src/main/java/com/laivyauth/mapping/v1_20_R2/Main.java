@@ -2,11 +2,11 @@ package com.laivyauth.mapping.v1_20_R2;
 
 import com.laivyauth.api.LaivyAuthApi;
 import com.laivyauth.api.config.Configuration;
-import com.laivyauth.mapping.exception.ExceptionHandler;
-import com.laivyauth.mapping.impl.ConnectionImpl;
 import com.laivyauth.api.mapping.Mapping;
 import com.laivyauth.api.platform.Platform;
 import com.laivyauth.api.platform.Version;
+import com.laivyauth.mapping.exception.ExceptionHandler;
+import com.laivyauth.mapping.impl.ConnectionImpl;
 import com.laivyauth.mapping.v1_20_R2.reflections.ServerReflections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;

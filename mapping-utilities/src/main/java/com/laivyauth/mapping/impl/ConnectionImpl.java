@@ -2,10 +2,10 @@ package com.laivyauth.mapping.impl;
 
 import codes.laivy.address.Address;
 import codes.laivy.address.port.Port;
-import com.laivyauth.mapping.Handshake;
-import com.laivyauth.api.account.Account;
 import com.laivyauth.api.LaivyAuthApi;
+import com.laivyauth.api.account.Account;
 import com.laivyauth.api.platform.Protocol;
+import com.laivyauth.mapping.Handshake;
 import com.laivyauth.utilities.timeout.Timeout;
 import io.netty.channel.Channel;
 import org.jetbrains.annotations.NotNull;

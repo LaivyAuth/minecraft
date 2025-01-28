@@ -1,10 +1,10 @@
 package com.laivyauth.api;
 
 import com.laivyauth.api.account.Account;
-import com.laivyauth.api.platform.Platform;
-import com.laivyauth.api.platform.Version;
 import com.laivyauth.api.config.Configuration;
 import com.laivyauth.api.exception.AccountExistsException;
+import com.laivyauth.api.platform.Platform;
+import com.laivyauth.api.platform.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
