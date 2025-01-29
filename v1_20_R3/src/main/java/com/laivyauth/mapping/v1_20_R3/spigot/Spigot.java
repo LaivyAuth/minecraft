@@ -5,6 +5,7 @@ import codes.laivy.address.port.Port;
 import com.laivyauth.api.account.Account;
 import com.laivyauth.api.mapping.Mapping.Connection;
 import com.laivyauth.api.mapping.Mapping.Connection.State;
+import com.laivyauth.api.platform.Platform;
 import com.laivyauth.api.platform.Protocol;
 import com.laivyauth.mapping.Handshake;
 import com.laivyauth.mapping.impl.ConnectionImpl;
@@ -17,6 +18,8 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.exceptions.AuthenticationUnavailableException;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.ProfileResult;
+import com.velocitypowered.natives.encryption.JavaVelocityCipher;
+import com.velocitypowered.natives.encryption.VelocityCipher;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -39,6 +42,7 @@ import org.jetbrains.annotations.UnknownNullability;
 import javax.crypto.SecretKey;
 import java.io.Flushable;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -266,8 +270,30 @@ final class Spigot extends NettyInjection implements Flushable {
                         // Encrypt and Decrypt modules
                         @NotNull SecretKey secretkey = begin.a(privateKey); // Get Secret Key
 
-                        channel.pipeline().addBefore("splitter", "decrypt", new PacketDecrypter(MinecraftEncryption.a(2, secretkey))); // Get Secondary Cipher
-                        channel.pipeline().addBefore("prepender", "encrypt", new PacketEncrypter(MinecraftEncryption.a(1, secretkey))); // Get Primary Cipher
+                        // Create encrypter and decrypters
+                        @NotNull PacketDecrypter decrypter;
+                        @NotNull PacketEncrypter encrypter;
+
+                        if (Platform.getCurrent() == Platform.PAPER) {
+                            //noinspection JavaReflectionMemberAccess
+                            @NotNull Constructor<PacketDecrypter> decrypterConstructor = PacketDecrypter.class.getConstructor(VelocityCipher.class);
+                            decrypterConstructor.setAccessible(true);
+
+                            //noinspection JavaReflectionMemberAccess
+                            @NotNull Constructor<PacketEncrypter> encrypterConstructor = PacketEncrypter.class.getConstructor(VelocityCipher.class);
+                            encrypterConstructor.setAccessible(true);
+
+                            // Instance
+                            decrypter = decrypterConstructor.newInstance(JavaVelocityCipher.FACTORY.forDecryption(secretkey));
+                            encrypter = encrypterConstructor.newInstance(JavaVelocityCipher.FACTORY.forEncryption(secretkey));
+                        } else {
+                            decrypter = new PacketDecrypter(MinecraftEncryption.a(2, secretkey));
+                            encrypter = new PacketEncrypter(MinecraftEncryption.a(1, secretkey));
+                        }
+
+                        // Add to channel pipeline
+                        channel.pipeline().addBefore("splitter", "decrypt", decrypter); // Get Secondary Cipher
+                        channel.pipeline().addBefore("prepender", "encrypt", encrypter); // Get Primary Cipher
 
                         new FireEventsThread(connection, listener, profile).start();
                     } catch (@NotNull Throwable throwable) {
@@ -328,9 +354,6 @@ final class Spigot extends NettyInjection implements Flushable {
                     if (listener == null) {
                         throw new IllegalStateException("cannot find the valid login listener of the cracked connection");
                     }
-
-                    // Mark as authenticating (skip the key validation process)
-                    PlayerReflections.setAuthenticating(listener);
 
                     // Initialize unique id
                     @NotNull GameProfile profile = PlayerReflections.initializeUniqueId(listener, connection.getName());
