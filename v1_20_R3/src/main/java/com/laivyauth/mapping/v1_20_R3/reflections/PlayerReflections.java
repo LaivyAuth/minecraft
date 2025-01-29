@@ -28,6 +28,12 @@ public final class PlayerReflections {
             method.setAccessible(true);
 
             method.invoke(listener, profile);
+
+            // Mark login state
+            method = LoginListener.class.getDeclaredMethod("b", GameProfile.class);
+            method.setAccessible(true);
+
+            method.invoke(listener, profile);
         } catch (@NotNull NoSuchMethodException e) {
             throw new RuntimeException("cannot find LoginListener#callPlayerPreLoginEvents method", e);
         } catch (@NotNull IllegalAccessException e) {
