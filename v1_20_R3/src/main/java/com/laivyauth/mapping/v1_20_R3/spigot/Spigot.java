@@ -2,17 +2,17 @@ package com.laivyauth.mapping.v1_20_R3.spigot;
 
 import codes.laivy.address.Address;
 import codes.laivy.address.port.Port;
-import com.laivyauth.mapping.Handshake;
 import com.laivyauth.api.account.Account;
-import com.laivyauth.mapping.impl.ConnectionImpl;
 import com.laivyauth.api.mapping.Mapping.Connection;
 import com.laivyauth.api.mapping.Mapping.Connection.State;
-import com.laivyauth.mapping.netty.NettyInjection;
 import com.laivyauth.api.platform.Protocol;
+import com.laivyauth.mapping.Handshake;
+import com.laivyauth.mapping.impl.ConnectionImpl;
+import com.laivyauth.mapping.netty.NettyInjection;
 import com.laivyauth.mapping.v1_20_R3.Main;
 import com.laivyauth.mapping.v1_20_R3.reflections.PlayerReflections;
-import com.laivyauth.utilities.messages.PluginMessages;
 import com.laivyauth.mapping.v1_20_R3.reflections.ServerReflections;
+import com.laivyauth.utilities.messages.PluginMessages;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.exceptions.AuthenticationUnavailableException;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
@@ -127,7 +127,8 @@ final class Spigot extends NettyInjection implements Flushable {
 
             // Check if there's a player already connected with this name
             if (Bukkit.getOnlinePlayers().stream().anyMatch(player -> player.getName().equals(name))) {
-                return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("accounts.nickname already connected", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name))));
+                channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("accounts.nickname already connected", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name)))));
+                return null;
             }
 
             // Check connections at this address
@@ -136,24 +137,28 @@ final class Spigot extends NettyInjection implements Flushable {
                 long connections = Bukkit.getOnlinePlayers().stream().filter(player -> player.getAddress() != null && player.getAddress().getHostName().equals(handshake.getAddress().toString())).count();
 
                 if (connections >= maximumConnections) {
-                    return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("accounts.maximum connected per ip", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("current", connections), new PluginMessages.Placeholder("maximum", maximumConnections), new PluginMessages.Placeholder("address", handshake.getAddress().toString()))));
+                    channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("accounts.maximum connected per ip", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("current", connections), new PluginMessages.Placeholder("maximum", maximumConnections), new PluginMessages.Placeholder("address", handshake.getAddress().toString())))));
+                    return null;
                 }
             }
 
             // Check version
             if (Arrays.stream(Main.getConfiguration().getWhitelist().getBlockedVersions()).anyMatch(protocol -> protocol == handshake.getProtocol().getVersion())) {
-                return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.blocked version", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("version", handshake.getProtocol().getName()))));
+                channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.blocked version", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("version", handshake.getProtocol().getName())))));
+                return null;
             }
 
             // Check if there's already a user playing with that nickname
             if (Bukkit.getOnlinePlayers().stream().anyMatch(player -> player.getName().equals(name))) {
-                return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("prevent double join error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name))));
+                channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("prevent double join error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name)))));
+                return null;
             }
 
             // Retrieve account and verify the case-sensitive issue
             @Nullable Account account = Main.getApi().getAccount(name).orElse(null);
             if (account != null && !account.getName().equals(name) && Main.getConfiguration().isCaseSensitiveNicknames()) {
-                return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("nickname case sensitive error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name))));
+                channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("nickname case sensitive error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name)))));
+                return null;
             }
 
             // Create connection instance
@@ -161,7 +166,8 @@ final class Spigot extends NettyInjection implements Flushable {
 
             // Check cracked
             if (!Main.getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED || connection != null && connection.getType() == Account.Type.CRACKED)) {
-                return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection != null ? connection.getName() : account.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection != null ? connection.getUniqueId() : account.getUniqueId())))));
+                channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection != null ? connection.getName() : account.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection != null ? connection.getUniqueId() : account.getUniqueId()))))));
+                return null;
             }
 
             // Create or retrieve existent attempt
@@ -241,7 +247,8 @@ final class Spigot extends NettyInjection implements Flushable {
                         Main.getExceptionHandler().handle(throwable);
                     } else try {
                         if (account != null && account.getType() == Account.Type.PREMIUM) {
-                            return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("premium authentication.premium account required error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()))));
+                            channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("premium authentication.premium account required error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName())))));
+                            return null;
                         }
 
                         // Initialize
@@ -252,7 +259,8 @@ final class Spigot extends NettyInjection implements Flushable {
 
                         // Check cracked
                         if (!Main.getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED || connection.getType() == Account.Type.CRACKED)) {
-                            return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection.getUniqueId())))));
+                            channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection.getUniqueId()))))));
+                            return null;
                         }
 
                         // Encrypt and Decrypt modules
