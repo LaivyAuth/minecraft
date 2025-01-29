@@ -56,6 +56,12 @@
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.laivyauth.minecraft</groupId>
+            <artifactId>v1_20_R4</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>codes.laivy</groupId>

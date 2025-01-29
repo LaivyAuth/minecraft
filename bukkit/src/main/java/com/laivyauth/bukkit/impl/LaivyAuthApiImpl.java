@@ -69,7 +69,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
             }
 
             try (@NotNull JarFile jar = new JarFile(mappingFile)) {
-                @NotNull URLClassLoader classLoader = URLClassLoader.newInstance(new URL[]{ mappingFile.toURI().toURL() }, LaivyAuth.class.getClassLoader());
+                @NotNull URLClassLoader classLoader = URLClassLoader.newInstance(new URL[]{mappingFile.toURI().toURL()}, LaivyAuth.class.getClassLoader());
                 @NotNull Class<?> main = classLoader.loadClass(jar.getManifest().getMainAttributes().getValue("Main-Class"));
 
                 if (Mapping.class.isAssignableFrom(main)) {
@@ -82,6 +82,7 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
                 } else {
                     log.error("The main class of mapping '{}' isn't an instance of '{}'.", mappingFile.getName(), Mapping.class);
                 }
+            } catch (@NotNull UnsupportedClassVersionError ignore) {
             } catch (@NotNull InvocationTargetException | @NotNull InstantiationException | @NotNull IllegalAccessException e) {
                 log.error("Cannot instantiate main class of mapping '{}': {}", mappingFile.getName(), e.getMessage());
                 log.atError().setCause(e).log();

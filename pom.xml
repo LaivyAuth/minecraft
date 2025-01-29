@@ -22,14 +22,17 @@
         <module>v1_20_R1</module>
         <module>v1_20_R2</module>
         <module>v1_20_R3</module>
+        <module>v1_20_R4</module>
+
+        <module>v1_21_R1</module>
 
         <module>core-utilities</module>
         <module>mapping-utilities</module>
     </modules>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
