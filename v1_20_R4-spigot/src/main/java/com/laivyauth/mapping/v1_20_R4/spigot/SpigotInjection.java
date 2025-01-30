@@ -3,16 +3,13 @@ package com.laivyauth.mapping.v1_20_R4.spigot;
 import codes.laivy.address.Address;
 import codes.laivy.address.port.Port;
 import com.laivyauth.api.account.Account;
-import com.laivyauth.api.mapping.Mapping.Connection;
 import com.laivyauth.api.mapping.Mapping.Connection.State;
 import com.laivyauth.api.platform.Platform;
 import com.laivyauth.api.platform.Protocol;
 import com.laivyauth.mapping.Handshake;
 import com.laivyauth.mapping.impl.ConnectionImpl;
 import com.laivyauth.mapping.netty.NettyInjection;
-import com.laivyauth.mapping.v1_20_R4.Main;
-import com.laivyauth.mapping.v1_20_R4.reflections.PlayerReflections;
-import com.laivyauth.mapping.v1_20_R4.reflections.ServerReflections;
+import com.laivyauth.mapping.v1_20_R4.spigot.reflections.Reflections;
 import com.laivyauth.utilities.messages.PluginMessages;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.exceptions.AuthenticationUnavailableException;
@@ -39,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
 import javax.crypto.SecretKey;
-import java.io.Flushable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.math.BigInteger;
@@ -50,51 +46,19 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.UUID;
 
-import static com.laivyauth.mapping.v1_20_R4.reflections.ServerReflections.chat;
+import static com.laivyauth.mapping.v1_20_R4.spigot.reflections.Reflections.chat;
+import static com.laivyauth.mapping.v1_20_R4.spigot.main.Main.*;
 
 @SuppressWarnings("IfCanBeSwitch")
-final class Spigot extends NettyInjection implements Flushable {
-
-    // Static initializers
-
-    private static volatile @UnknownNullability Spigot instance;
-
-    public static synchronized void initialize() {
-        instance = new Spigot();
-    }
-    public static synchronized void interrupt() throws IOException {
-        if (instance != null) try {
-            instance.flush();
-        } finally {
-            instance = null;
-        }
-    }
+public final class SpigotInjection extends NettyInjection {
 
     // Object
 
-    public Spigot() {
-        super(ServerReflections.getServerChannel());
-
-        if (Main.getConfiguration().getPremiumAuthentication().isEnabled()) {
-            // Set 'online-mode' to true
-            ServerReflections.setOnlineMode(true);
-        }
-    }
-
-    // Getters
-
-    public @NotNull Collection<ConnectionImpl> getConnections() {
-        return ConnectionImpl.retrieve();
-    }
-
-    // Flushable
-
-    @Override
-    public void flush() throws IOException {
-        super.flush();
+    public SpigotInjection() {
+        // Super class instance with server channel
+        super(Reflections.getServerChannel());
     }
 
     // Modules
@@ -102,7 +66,6 @@ final class Spigot extends NettyInjection implements Flushable {
     @Override
     protected @UnknownNullability Object read(@NotNull ChannelHandlerContext context, @NotNull Object message) {
         @NotNull Channel channel = context.channel();
-        System.out.println("Read:  '" + message.getClass().getSimpleName() + "'");
 
         if (message instanceof @NotNull PacketHandshakingInSetProtocol packet) {
             // EnumProtocol represents the 'Next State' property from the handshaking protocol
@@ -133,36 +96,46 @@ final class Spigot extends NettyInjection implements Flushable {
             // Check if there's a player already connected with this name
             if (Bukkit.getOnlinePlayers().stream().anyMatch(player -> player.getName().equals(name))) {
                 channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("accounts.nickname already connected", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name)))));
+                channel.close();
+
                 return null;
             }
 
             // Check connections at this address
-            int maximumConnections = Main.getConfiguration().getAccounts().getMaximumAuthenticatedPerIp();
+            int maximumConnections = getConfiguration().getAccounts().getMaximumAuthenticatedPerIp();
             if (maximumConnections > 0) {
                 long connections = Bukkit.getOnlinePlayers().stream().filter(player -> player.getAddress() != null && player.getAddress().getHostName().equals(handshake.getAddress().toString())).count();
 
                 if (connections >= maximumConnections) {
                     channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("accounts.maximum connected per ip", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("current", connections), new PluginMessages.Placeholder("maximum", maximumConnections), new PluginMessages.Placeholder("address", handshake.getAddress().toString())))));
+                    channel.close();
+
                     return null;
                 }
             }
 
             // Check version
-            if (Arrays.stream(Main.getConfiguration().getWhitelist().getBlockedVersions()).anyMatch(protocol -> protocol == handshake.getProtocol().getVersion())) {
+            if (Arrays.stream(getConfiguration().getWhitelist().getBlockedVersions()).anyMatch(protocol -> protocol == handshake.getProtocol().getVersion())) {
                 channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.blocked version", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("version", handshake.getProtocol().getName())))));
+                channel.close();
+
                 return null;
             }
 
             // Check if there's already a user playing with that nickname
             if (Bukkit.getOnlinePlayers().stream().anyMatch(player -> player.getName().equals(name))) {
                 channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("prevent double join error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name)))));
+                channel.close();
+
                 return null;
             }
 
             // Retrieve account and verify the case-sensitive issue
-            @Nullable Account account = Main.getApi().getAccount(name).orElse(null);
-            if (account != null && !account.getName().equals(name) && Main.getConfiguration().isCaseSensitiveNicknames()) {
+            @Nullable Account account = getApi().getAccount(name).orElse(null);
+            if (account != null && !account.getName().equals(name) && getConfiguration().isCaseSensitiveNicknames()) {
                 channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("nickname case sensitive error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", name)))));
+                channel.close();
+
                 return null;
             }
 
@@ -170,18 +143,20 @@ final class Spigot extends NettyInjection implements Flushable {
             @Nullable ConnectionImpl connection = ConnectionImpl.retrieve(name).orElse(null);
 
             // Check cracked
-            if (!Main.getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED || connection != null && connection.getType() == Account.Type.CRACKED)) {
+            if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED || connection != null && connection.getType() == Account.Type.CRACKED)) {
                 channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection != null ? connection.getName() : account.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection != null ? connection.getUniqueId() : account.getUniqueId()))))));
+                channel.close();
+
                 return null;
             }
 
             // Create or retrieve existent attempt
             if (connection != null) {
                 connection.setChannel(channel);
-                Main.log.trace("Connection attempt '{}' reconnected.", connection.getName());
+                log.trace("Connection attempt '{}' reconnected.", connection.getName());
             } else {
-                connection = ConnectionImpl.create(Main.getApi(), channel, handshake, name);
-                Main.log.trace("Started new connection attempt '{}'.", connection.getName());
+                connection = ConnectionImpl.create(getApi(), channel, handshake, name);
+                log.trace("Started new connection attempt '{}'.", connection.getName());
             }
 
             // Change connection's state
@@ -199,7 +174,7 @@ final class Spigot extends NettyInjection implements Flushable {
             // Start encryption
             try {
                 @NotNull MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
-                @NotNull NetworkManager network = PlayerReflections.getNetworkManager(channel); // Network Manager
+                @NotNull NetworkManager network = Reflections.getNetworkManager(channel); // Network Manager
                 @Nullable LoginListener listener = (LoginListener) network.k(); // Login Listener
 
                 @NotNull SocketAddress remoteAddress = network.d(); // Remote Address
@@ -216,7 +191,7 @@ final class Spigot extends NettyInjection implements Flushable {
 
                 // Address and encryption
                 boolean usesAuthentication = Bukkit.getServer().getOnlineMode(); // Uses Authentication
-                byte[] encryption = PlayerReflections.getEncryptionBytes(listener);
+                byte[] encryption = Reflections.getEncryptionBytes(listener);
                 @Nullable InetAddress address = usesAuthentication && remoteAddress instanceof InetSocketAddress ? ((InetSocketAddress) remoteAddress).getAddress() : null;
 
                 // Hash
@@ -226,8 +201,8 @@ final class Spigot extends NettyInjection implements Flushable {
                     if (!begin.a(encryption, privateKey)) { // Check if challenge is valid
                         throw new IllegalStateException("encryption arrays are not equals");
                     } else {
-                        @NotNull SecretKey secretkey = begin.a(privateKey); // Get Secret Key
-                        secret = new BigInteger(ServerReflections.digestData("", publicKey, secretkey)).toString(16);
+                        @NotNull SecretKey secretKey = begin.a(privateKey); // Get Secret Key
+                        secret = new BigInteger(MinecraftEncryption.a("", publicKey, secretKey)).toString(16);
                     }
                 } catch (@NotNull Exception exception) {
                     throw new IllegalStateException("cannot proceed with the cryptography", exception);
@@ -246,25 +221,29 @@ final class Spigot extends NettyInjection implements Flushable {
 
                         listener.a(begin); // Handle Key
                     } catch (@NotNull Throwable throwable) {
-                        Main.log.error("Cannot authenticate premium player {}: {}", connection.getName(), throwable.getMessage());
-                        Main.log.atDebug().setCause(throwable).log();
+                        log.error("Cannot authenticate premium player {}: {}", connection.getName(), throwable.getMessage());
+                        log.atDebug().setCause(throwable).log();
 
-                        Main.getExceptionHandler().handle(throwable);
+                        getExceptionHandler().handle(throwable);
                     } else try {
                         if (account != null && account.getType() == Account.Type.PREMIUM) {
                             channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("premium authentication.premium account required error", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName())))));
+                            channel.close();
+
                             return null;
                         }
 
                         // Initialize
-                        @NotNull GameProfile profile = PlayerReflections.initializeUniqueId(listener, connection.getName());
+                        @NotNull GameProfile profile = Reflections.initializeUniqueId(listener, connection.getName());
 
                         connection.setUniqueId(profile.getId());
                         connection.setType(Account.Type.CRACKED);
 
                         // Check cracked
-                        if (!Main.getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED || connection.getType() == Account.Type.CRACKED)) {
+                        if (!getConfiguration().getWhitelist().isAllowCrackedUsers() && (account != null && account.getType() == Account.Type.CRACKED || connection.getType() == Account.Type.CRACKED)) {
                             channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("whitelist.cracked users not allowed", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()), new PluginMessages.Placeholder("uuid", String.valueOf(connection.getUniqueId()))))));
+                            channel.close();
+
                             return null;
                         }
 
@@ -298,10 +277,10 @@ final class Spigot extends NettyInjection implements Flushable {
 
                         new FireEventsThread(connection, listener, profile).start();
                     } catch (@NotNull Throwable throwable) {
-                        Main.log.error("Cannot authenticate cracked player {}: {}", connection.getName(), throwable.getMessage());
-                        Main.log.atDebug().setCause(throwable).log();
+                        log.error("Cannot authenticate cracked player {}: {}", connection.getName(), throwable.getMessage());
+                        log.atDebug().setCause(throwable).log();
 
-                        Main.getExceptionHandler().handle(throwable);
+                        getExceptionHandler().handle(throwable);
                     }
                 } finally {
                     // Change connection's state
@@ -320,7 +299,6 @@ final class Spigot extends NettyInjection implements Flushable {
     @Override
     protected @UnknownNullability Object write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws IOException {
         @NotNull Channel channel = context.channel();
-        System.out.println("Write:  '" + message.getClass().getSimpleName() + "'");
 
         if (message instanceof @NotNull PacketLoginOutEncryptionBegin begin) {
             @NotNull ConnectionImpl connection = ConnectionImpl.retrieve(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));
@@ -332,7 +310,7 @@ final class Spigot extends NettyInjection implements Flushable {
             }
 
             // Continue with premium authentication
-            if (Main.getApi().getConfiguration().getPremiumAuthentication().isEnabled()) {
+            if (getApi().getConfiguration().getPremiumAuthentication().isEnabled()) {
                 // Check if the attempt type is null
                 if (connection.getType() == null) {
                     if (!connection.isReconnecting()) { // Tell the player to reconnect
@@ -340,17 +318,20 @@ final class Spigot extends NettyInjection implements Flushable {
 
                         // Create reconnection and reset throttling
                         connection.setReconnection(connection.new ReconnectionImpl());
-                        if (address != null) PlayerReflections.resetThrottling(address);
+                        if (address != null) Reflections.resetThrottling(address);
 
                         // Disconnect
-                        return new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("premium authentication.account verified", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName()))));
+                        channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("premium authentication.account verified", PluginMessages.Placeholder.PREFIX, new PluginMessages.Placeholder("nickname", connection.getName())))));
+                        channel.close();
+
+                        return null;
                     }
                 } else if (connection.getType() == Account.Type.CRACKED) {
                     // Change connection's state
                     connection.setState(State.ENCRYPTED);
 
                     // Retrieve login listener
-                    @Nullable LoginListener listener = (LoginListener) PlayerReflections.getNetworkManager(channel).k();
+                    @Nullable LoginListener listener = (LoginListener) Reflections.getNetworkManager(channel).k();
 
                     // Check if listener is not null
                     if (listener == null) {
@@ -358,7 +339,7 @@ final class Spigot extends NettyInjection implements Flushable {
                     }
 
                     // Initialize unique id
-                    @NotNull GameProfile profile = PlayerReflections.initializeUniqueId(listener, connection.getName());
+                    @NotNull GameProfile profile = Reflections.initializeUniqueId(listener, connection.getName());
 
                     // Set the connection's unique id
                     connection.setUniqueId(profile.getId());
@@ -385,12 +366,12 @@ final class Spigot extends NettyInjection implements Flushable {
             }
 
             try {
-                @NotNull Account account = connection.getAccount() != null ? connection.getAccount() : Main.getApi().getOrCreate(connection.getUniqueId(), connection.getName());
+                @NotNull Account account = connection.getAccount() != null ? connection.getAccount() : getApi().getOrCreate(connection.getUniqueId(), connection.getName());
                 account.setType(connection.getType());
                 account.setName(connection.getName());
 
                 // Mark as authenticated if player is premium and not required authentication
-                if (connection.getType() == Account.Type.PREMIUM && !Main.getConfiguration().getAuthentication().isRequiredForPremiumPlayers()) {
+                if (connection.getType() == Account.Type.PREMIUM && !getConfiguration().getAuthentication().isRequiredForPremiumPlayers()) {
                     account.setAuthenticated(true);
                 }
 
@@ -408,10 +389,11 @@ final class Spigot extends NettyInjection implements Flushable {
         // Finish
         return message;
     }
+
     @Override
     protected void close(@NotNull ChannelHandlerContext context) throws IOException {
         @NotNull Channel channel = context.channel();
-        @NotNull NetworkManager manager = PlayerReflections.getNetworkManager(channel);
+        @NotNull NetworkManager manager = Reflections.getNetworkManager(channel);
 
         // Start closing
         if (!(manager.k() instanceof LoginListener)) {
@@ -448,41 +430,41 @@ final class Spigot extends NettyInjection implements Flushable {
                 }
 
                 // Initialize uuid
-                @NotNull GameProfile profile = PlayerReflections.initializeUniqueId(listener, connection.getName());
+                @NotNull GameProfile profile = Reflections.initializeUniqueId(listener, connection.getName());
 
                 // Get unique id
                 @NotNull UUID uuid = profile.getId();
 
                 // Set on account
-                Main.getApi().getOrCreate(uuid, connection.getName()).setType(Account.Type.CRACKED);
+                getApi().getOrCreate(uuid, connection.getName()).setType(Account.Type.CRACKED);
             } catch (@NotNull Throwable throwable) {
-                Main.log.error("Cannot mark player {} as cracked: {}", connection.getName(), throwable.getMessage());
-                Main.log.atDebug().setCause(throwable).log();
+                log.error("Cannot mark player {} as cracked: {}", connection.getName(), throwable.getMessage());
+                log.atDebug().setCause(throwable).log();
 
-                Main.getExceptionHandler().handle(throwable);
+                getExceptionHandler().handle(throwable);
             }
 
             // Eject
             eject(channel);
         }
     }
-
     @Override
     protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) {
         @NotNull Channel channel = context.channel();
+
         channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("authentication error", PluginMessages.Placeholder.PREFIX))));
         channel.close();
 
         // Handle the exception
         try {
-            Main.getExceptionHandler().handle(cause);
+            getExceptionHandler().handle(cause);
         } catch (@NotNull Throwable throwable) {
-            Main.log.error("Cannot log exception error: {}", throwable.getMessage());
+            log.error("Cannot log exception error: {}", throwable.getMessage());
         }
     }
 
     // Classes
-
+    
     private static final class FireEventsThread extends Thread {
 
         private final @NotNull Connection connection;
@@ -520,10 +502,10 @@ final class Spigot extends NettyInjection implements Flushable {
 
             try {
                 // Save all the things into the api
-                Main.getApi().getOrCreate(getConnection().getUniqueId(), getConnection().getName()).setType(getConnection().getType());
+                getApi().getOrCreate(getConnection().getUniqueId(), getConnection().getName()).setType(getConnection().getType());
 
                 // Finish firing all events
-                PlayerReflections.callPlayerPreLoginEvents(getListener(), getProfile());
+                Reflections.callPlayerPreLoginEvents(getListener(), getProfile());
             } catch (@NotNull Exception e) {
                 throw new RuntimeException("cannot fire events", e);
             }

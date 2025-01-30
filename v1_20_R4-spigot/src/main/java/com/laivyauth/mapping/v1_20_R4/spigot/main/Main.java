@@ -1,4 +1,4 @@
-package com.laivyauth.mapping.v1_20_R4;
+package com.laivyauth.mapping.v1_20_R4.spigot.main;
 
 import com.laivyauth.api.LaivyAuthApi;
 import com.laivyauth.api.config.Configuration;
@@ -7,28 +7,30 @@ import com.laivyauth.api.platform.Platform;
 import com.laivyauth.api.platform.Version;
 import com.laivyauth.mapping.exception.ExceptionHandler;
 import com.laivyauth.mapping.impl.ConnectionImpl;
-import com.laivyauth.mapping.v1_20_R4.reflections.ServerReflections;
+import com.laivyauth.mapping.netty.NettyInjection;
+import net.minecraft.SharedConstants;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 
 public final class Main implements Mapping {
 
     // Static initializers
 
     private static @UnknownNullability Main instance;
+    public static final @NotNull Logger log = LoggerFactory.getLogger(name());
 
     private static @NotNull String name() {
-        return "1.20.5/6";
+        return "1.20.5/6 Spigot";
     }
-
-    public static final @NotNull Logger log = LoggerFactory.getLogger(name());
 
     // Object
 
@@ -37,18 +39,26 @@ public final class Main implements Mapping {
     private final @NotNull Configuration configuration;
 
     private final @NotNull ExceptionHandler exceptionHandler;
+    private @Nullable NettyInjection injection;
 
     private Main(@NotNull ClassLoader classLoader, @NotNull LaivyAuthApi api, @NotNull Configuration configuration) {
+        // Variables
         this.classLoader = classLoader;
         this.api = api;
         this.configuration = configuration;
 
         this.exceptionHandler = new ExceptionHandler(api.getVersion(), new File(api.getDataFolder(), "exceptions/"));
 
+        // Instance
         Main.instance = this;
     }
 
     // Getters
+
+    @Override
+    public @NotNull Collection<ConnectionImpl> getConnections() {
+        return ConnectionImpl.retrieve();
+    }
 
     @Override
     public @NotNull ClassLoader getClassLoader() {
@@ -79,7 +89,7 @@ public final class Main implements Mapping {
 
     @Override
     public @NotNull Platform @NotNull [] getPlatforms() {
-        return new Platform[] { Platform.SPIGOT, Platform.PAPER };
+        return new Platform[] { Platform.SPIGOT };
     }
 
     @Override
@@ -99,7 +109,7 @@ public final class Main implements Mapping {
             }
 
             // Retrieve the protocol version
-            int protocol = ServerReflections.getProtocolVersion();
+            int protocol = SharedConstants.b().e();
 
             // Finish
             return Arrays.stream(getCompatibleVersions()).anyMatch(compatible -> compatible == protocol);
@@ -108,53 +118,28 @@ public final class Main implements Mapping {
         }
     }
 
-    @Override
-    public @NotNull Iterable<ConnectionImpl> getConnections() {
-        return ConnectionImpl.retrieve();
-    }
-
     // Loaders
 
     @Override
     public void start() {
-        if (Platform.SPIGOT.isCompatible() || Platform.PAPER.isCompatible()) {
-            try {
-                @NotNull Class<?> target = Class.forName("com.laivyauth.mapping.v1_20_R4.spigot.Spigot");
-
-                @NotNull Method method = target.getDeclaredMethod("initialize");
-                method.setAccessible(true);
-
-                method.invoke(null);
-            } catch (@NotNull ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
-                log.atError().setCause(e).log("An unknown error occurred trying to load mapping");
-            } catch (@NotNull InvocationTargetException e) {
-                log.atError().setCause(e).log("Cannot initialize spigot/paper mapping: {}", e.getMessage());
+        if (Platform.SPIGOT.isCompatible()) {
+            // Configure online-mode
+            if (getConfiguration().getPremiumAuthentication().isEnabled()) {
+                // Set 'online-mode' to true
+                ((org.bukkit.craftbukkit.v1_20_R4.CraftServer) Bukkit.getServer()).getServer().d(true);
             }
-        } else if (Platform.SPONGE.isCompatible()) {
-            throw new UnsupportedOperationException();
+
+            // Start injection
+            injection = new com.laivyauth.mapping.v1_20_R4.spigot.SpigotInjection();
         } else {
             throw new UnsupportedOperationException();
         }
     }
     @Override
-    public void close() {
-        try {
-            if (Platform.SPIGOT.isCompatible() || Platform.PAPER.isCompatible()) {
-                @NotNull Class<?> target = Class.forName("com.laivyauth.mapping.v1_20_R4.spigot.Spigot");
-
-                @NotNull Method method = target.getDeclaredMethod("interrupt");
-                method.setAccessible(true);
-
-                method.invoke(null);
-            } else if (Platform.SPONGE.isCompatible()) {
-                throw new UnsupportedOperationException();
-            } else {
-                throw new UnsupportedOperationException();
-            }
-        } catch (@NotNull ClassNotFoundException | @NotNull NoSuchMethodException | @NotNull IllegalAccessException e) {
-            log.atError().setCause(e).log("An unknown error occurred trying to unload mapping");
-        } catch (@NotNull InvocationTargetException e) {
-            log.atError().setCause(e).log("Cannot interrupt mapping: {}", e.getMessage());
+    public void close() throws IOException {
+        if (injection != null) {
+            injection.flush();
+            injection = null;
         }
     }
 
