@@ -1,4 +1,4 @@
-package com.laivyauth.mapping.v1_20_R4.paper;
+package com.laivyauth.mapping.v1_20_R4.paper.reflections;
 
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.Channel;

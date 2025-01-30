@@ -113,7 +113,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.laivyauth.mapping.v1_20_R4.paper.Paper</mainClass>
+                            <mainClass>com.laivyauth.mapping.v1_20_R4.paper.main.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
