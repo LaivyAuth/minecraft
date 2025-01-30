@@ -17,13 +17,13 @@ public enum Platform {
     SPIGOT() {
         @Override
         public boolean isCompatible() {
-            return Reflections.exists("net.minecraft.SharedConstants") && Reflections.exists("org.bukkit.Bukkit");
+            return !Reflections.exists("io.papermc.paper.plugin.bootstrap.PluginBootstrap") && Reflections.exists("net.minecraft.SharedConstants") && Reflections.exists("org.bukkit.Bukkit");
         }
     },
     PAPER() {
         @Override
         public boolean isCompatible() {
-            return SPIGOT.isCompatible() && Reflections.exists("io.papermc.paper.plugin.bootstrap.PluginBootstrap");
+            return Reflections.exists("net.minecraft.SharedConstants") && Reflections.exists("org.bukkit.Bukkit") && Reflections.exists("io.papermc.paper.plugin.bootstrap.PluginBootstrap");
         }
     },
     SPONGE() {

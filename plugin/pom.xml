@@ -56,9 +56,16 @@
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>com.laivyauth.minecraft</groupId>
-            <artifactId>v1_20_R4</artifactId>
+            <artifactId>v1_20_R4-spigot</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.laivyauth.minecraft</groupId>
+            <artifactId>v1_20_R4-paper</artifactId>
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>
