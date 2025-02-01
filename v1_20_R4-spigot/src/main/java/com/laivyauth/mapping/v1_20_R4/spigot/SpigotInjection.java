@@ -48,8 +48,8 @@ import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.UUID;
 
-import static com.laivyauth.mapping.v1_20_R4.spigot.reflections.Reflections.chat;
 import static com.laivyauth.mapping.v1_20_R4.spigot.main.Main.*;
+import static com.laivyauth.mapping.v1_20_R4.spigot.reflections.Reflections.chat;
 
 @SuppressWarnings("IfCanBeSwitch")
 public final class SpigotInjection extends NettyInjection {
@@ -174,7 +174,7 @@ public final class SpigotInjection extends NettyInjection {
             // Start encryption
             try {
                 @NotNull MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
-                @NotNull NetworkManager network = Reflections.getNetworkManager(channel); // Network Manager
+                @NotNull NetworkManager network = Reflections.getNetworkManager(channel).orElseThrow(() -> new NullPointerException("cannot retrieve network manager")); // Network Manager
                 @Nullable LoginListener listener = (LoginListener) network.k(); // Login Listener
 
                 @NotNull SocketAddress remoteAddress = network.d(); // Remote Address
@@ -331,7 +331,7 @@ public final class SpigotInjection extends NettyInjection {
                     connection.setState(State.ENCRYPTED);
 
                     // Retrieve login listener
-                    @Nullable LoginListener listener = (LoginListener) Reflections.getNetworkManager(channel).k();
+                    @Nullable LoginListener listener = (LoginListener) Reflections.getNetworkManager(channel).orElseThrow(() -> new NullPointerException("cannot retrieve network manager")).k();
 
                     // Check if listener is not null
                     if (listener == null) {
@@ -393,7 +393,7 @@ public final class SpigotInjection extends NettyInjection {
     @Override
     protected void close(@NotNull ChannelHandlerContext context) throws IOException {
         @NotNull Channel channel = context.channel();
-        @NotNull NetworkManager manager = Reflections.getNetworkManager(channel);
+        @NotNull NetworkManager manager = Reflections.getNetworkManager(channel).orElseThrow(() -> new NullPointerException("cannot retrieve network manager"));
 
         // Start closing
         if (!(manager.k() instanceof LoginListener)) {
@@ -451,7 +451,8 @@ public final class SpigotInjection extends NettyInjection {
     @Override
     protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) {
         @NotNull Channel channel = context.channel();
-
+        
+        // Close connection
         channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("authentication error", PluginMessages.Placeholder.PREFIX))));
         channel.close();
 

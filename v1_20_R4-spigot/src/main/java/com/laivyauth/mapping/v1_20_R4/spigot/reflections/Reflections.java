@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class Reflections {
 
@@ -44,19 +45,10 @@ public final class Reflections {
             throw new RuntimeException(e);
         }
     }
-    public static @NotNull NetworkManager getNetworkManager(@NotNull Channel channel) {
+    public static @NotNull Optional<NetworkManager> getNetworkManager(@NotNull Channel channel) {
         // Retrieve server connection
         @NotNull ServerConnection connection = ((CraftServer) Bukkit.getServer()).getServer().ai();
-
-        for (@NotNull NetworkManager network : connection.e()) {
-            @NotNull Channel target = network.n;
-
-            if (channel.equals(target)) {
-                return network;
-            }
-        }
-
-        throw new NullPointerException("cannot retrieve network manager");
+        return connection.e().stream().filter(network -> channel.equals(network.n)).findFirst();
     }
     public static byte[] getEncryptionBytes(@NotNull LoginListener listener) {
         try {
