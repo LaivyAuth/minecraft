@@ -198,7 +198,7 @@ final class Spigot extends NettyInjection implements Flushable {
             // Start encryption
             try {
                 @NotNull MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
-                @NotNull NetworkManager network = PlayerReflections.getNetworkManager(channel); // Network Manager
+                @NotNull NetworkManager network = PlayerReflections.getNetworkManager(channel).orElseThrow(() -> new NullPointerException("cannot retrieve network manager")); // Network Manager
                 @Nullable LoginListener listener = (LoginListener) network.m(); // Login Listener
 
                 @NotNull SocketAddress remoteAddress = network.f(); // Remote Address
@@ -348,7 +348,7 @@ final class Spigot extends NettyInjection implements Flushable {
                     connection.setState(State.ENCRYPTED);
 
                     // Retrieve login listener
-                    @Nullable LoginListener listener = (LoginListener) PlayerReflections.getNetworkManager(channel).m();
+                    @Nullable LoginListener listener = (LoginListener) PlayerReflections.getNetworkManager(channel).orElseThrow(() -> new NullPointerException("cannot retrieve network manager")).m();
 
                     // Check if listener is not null
                     if (listener == null) {
@@ -409,7 +409,7 @@ final class Spigot extends NettyInjection implements Flushable {
     @Override
     protected void close(@NotNull ChannelHandlerContext context) throws IOException {
         @NotNull Channel channel = context.channel();
-        @NotNull NetworkManager manager = PlayerReflections.getNetworkManager(channel);
+        @NotNull NetworkManager manager = PlayerReflections.getNetworkManager(channel).orElseThrow(() -> new NullPointerException("cannot retrieve network manager"));
 
         // Start closing
         if (!(manager.m() instanceof LoginListener)) {
@@ -468,6 +468,7 @@ final class Spigot extends NettyInjection implements Flushable {
     @Override
     protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) {
         @NotNull Channel channel = context.channel();
+
         channel.write(new PacketLoginOutDisconnect(chat(PluginMessages.getMessage("authentication error", PluginMessages.Placeholder.PREFIX))));
         channel.close();
 

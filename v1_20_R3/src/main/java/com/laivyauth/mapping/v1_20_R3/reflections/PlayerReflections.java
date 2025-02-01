@@ -15,8 +15,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class PlayerReflections {
 
@@ -43,20 +43,11 @@ public final class PlayerReflections {
         }
     }
 
-    public static @NotNull NetworkManager getNetworkManager(@NotNull Channel channel) {
+    public static @NotNull Optional<NetworkManager> getNetworkManager(@NotNull Channel channel) {
         @Nullable ServerConnection connection = ((CraftServer) Bukkit.getServer()).getServer().af();
         if (connection == null) throw new NullPointerException("cannot retrieve server connection");
 
-        @NotNull List<NetworkManager> networks = connection.e();
-        for (@NotNull NetworkManager network : networks) {
-            @NotNull Channel target = network.n;
-
-            if (channel.equals(target)) {
-                return network;
-            }
-        }
-
-        throw new NullPointerException("cannot retrieve network manager");
+        return connection.e().stream().filter(network -> channel.equals(network.n)).findFirst();
     }
 
     public static byte[] getEncryptionBytes(@NotNull LoginListener listener) {
