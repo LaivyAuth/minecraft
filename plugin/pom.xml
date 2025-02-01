@@ -71,6 +71,45 @@
         </dependency>
 
         <dependency>
+            <groupId>com.laivyauth.minecraft</groupId>
+            <artifactId>v1_21_R1-spigot</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.laivyauth.minecraft</groupId>
+            <artifactId>v1_21_R1-paper</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.laivyauth.minecraft</groupId>
+            <artifactId>v1_21_R2-spigot</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.laivyauth.minecraft</groupId>
+            <artifactId>v1_21_R2-paper</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.laivyauth.minecraft</groupId>
+            <artifactId>v1_21_R3-spigot</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.laivyauth.minecraft</groupId>
+            <artifactId>v1_21_R3-paper</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>codes.laivy</groupId>
             <artifactId>java-serializable</artifactId>
             <version>1.10.1</version>

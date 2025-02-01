@@ -25,6 +25,15 @@
         <module>v1_20_R4-spigot</module>
         <module>v1_20_R4-paper</module>
 
+        <module>v1_21_R1-spigot</module>
+        <module>v1_21_R1-paper</module>
+
+        <module>v1_21_R2-spigot</module>
+        <module>v1_21_R2-paper</module>
+
+        <module>v1_21_R3-spigot</module>
+        <module>v1_21_R3-paper</module>
+
         <module>core-utilities</module>
         <module>mapping-utilities</module>
     </modules>
