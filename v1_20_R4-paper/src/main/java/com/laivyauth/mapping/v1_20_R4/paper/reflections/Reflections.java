@@ -18,6 +18,7 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class Reflections {
 
@@ -64,19 +65,10 @@ public final class Reflections {
             throw new RuntimeException("exception trying to invoke player login finish methods", e);
         }
     }
-    public static @NotNull Connection getNetworkManager(@NotNull Channel channel) {
+    public static @NotNull Optional<Connection> getNetworkManager(@NotNull Channel channel) {
         // Retrieve server connection
         @Nullable ServerConnectionListener connection = ((CraftServer) Bukkit.getServer()).getServer().getConnection();
-
-        for (@NotNull Connection network : connection.getConnections()) {
-            @NotNull Channel target = network.channel;
-
-            if (channel.equals(target)) {
-                return network;
-            }
-        }
-
-        throw new NullPointerException("cannot retrieve network manager");
+        return connection.getConnections().stream().filter(network -> channel.equals(network.channel)).findFirst();
     }
     public static byte[] getEncryptionBytes(@NotNull ServerLoginPacketListenerImpl listener) {
         try {

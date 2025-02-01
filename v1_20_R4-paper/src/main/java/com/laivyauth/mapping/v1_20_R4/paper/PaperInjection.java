@@ -44,6 +44,7 @@ import java.util.UUID;
 
 import static com.laivyauth.api.mapping.Mapping.Connection;
 import static com.laivyauth.mapping.v1_20_R4.paper.main.Main.*;
+import static com.laivyauth.mapping.v1_20_R4.paper.reflections.Reflections.getNetworkManager;
 
 @SuppressWarnings("IfCanBeSwitch")
 public final class PaperInjection extends NettyInjection {
@@ -169,7 +170,7 @@ public final class PaperInjection extends NettyInjection {
             // Start encryption
             try {
                 @NotNull MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
-                @NotNull net.minecraft.network.Connection network = Reflections.getNetworkManager(channel); // Network Manager
+                @NotNull net.minecraft.network.Connection network = getNetworkManager(channel).orElseThrow(() -> new NullPointerException("cannot retrieve network manager")); // Network Manager
                 @Nullable ServerLoginPacketListenerImpl listener = (ServerLoginPacketListenerImpl) network.getPacketListener(); // Login Listener
 
                 @NotNull SocketAddress remoteAddress = network.getRemoteAddress(); // Remote Address
@@ -306,7 +307,7 @@ public final class PaperInjection extends NettyInjection {
                     connection.setState(State.ENCRYPTED);
 
                     // Retrieve login listener
-                    @Nullable ServerLoginPacketListenerImpl listener = (ServerLoginPacketListenerImpl) Reflections.getNetworkManager(channel).getPacketListener();
+                    @Nullable ServerLoginPacketListenerImpl listener = (ServerLoginPacketListenerImpl) getNetworkManager(channel).orElseThrow(() -> new NullPointerException("cannot retrieve network manager")).getPacketListener();
 
                     // Check if listener is not null
                     if (listener == null) {
@@ -368,7 +369,7 @@ public final class PaperInjection extends NettyInjection {
     @Override
     protected void close(@NotNull ChannelHandlerContext context) throws IOException {
         @NotNull Channel channel = context.channel();
-        @NotNull net.minecraft.network.Connection manager = Reflections.getNetworkManager(channel);
+        @NotNull net.minecraft.network.Connection manager = getNetworkManager(channel).orElseThrow(() -> new NullPointerException("cannot retrieve network manager"));
 
         // Start closing
         if (!(manager.getPacketListener() instanceof ServerLoginPacketListenerImpl)) {
@@ -428,6 +429,7 @@ public final class PaperInjection extends NettyInjection {
     protected void exception(@NotNull ChannelHandlerContext context, @NotNull Throwable cause) throws IOException {
         @NotNull Channel channel = context.channel();
 
+        // Close connection
         channel.write(new ClientboundLoginDisconnectPacket(Component.nullToEmpty(PluginMessages.getMessage("authentication error", PluginMessages.Placeholder.PREFIX))));
         channel.close();
         
