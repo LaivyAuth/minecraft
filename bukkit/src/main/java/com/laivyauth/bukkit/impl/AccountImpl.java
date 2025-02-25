@@ -1,6 +1,7 @@
 package com.laivyauth.bukkit.impl;
 
 import codes.laivy.address.Address;
+import codes.laivy.address.email.Email;
 import codes.laivy.serializable.annotations.serializers.MethodSerialization;
 import codes.laivy.serializable.context.Context;
 import codes.laivy.serializable.context.MapContext;
@@ -115,6 +116,15 @@ final class AccountImpl implements Account {
         } else {
             this.type = type;
         }
+    }
+
+    @Override
+    public @Nullable Email getEmail() {
+        return null;
+    }
+    @Override
+    public boolean isVerified() {
+        return false;
     }
 
     @Override

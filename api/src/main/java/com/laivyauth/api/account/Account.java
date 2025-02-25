@@ -1,6 +1,7 @@
 package com.laivyauth.api.account;
 
 import codes.laivy.address.Address;
+import codes.laivy.address.email.Email;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +27,8 @@ public interface Account extends Serializable {
     @Nullable Type getType();
     void setType(@Nullable Type type);
 
-//    @Nullable String getEmail();
-//    boolean isVerified();
+    @Nullable Email getEmail();
+    boolean isVerified();
 
     boolean isNew();
 
