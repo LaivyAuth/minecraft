@@ -60,7 +60,6 @@ public final class PaperInjection extends NettyInjection {
     @Override
     protected @UnknownNullability Object read(@NotNull ChannelHandlerContext context, @NotNull Object message) throws IOException {
         @NotNull Channel channel = context.channel();
-        System.out.println("Read:  '" + message.getClass().getSimpleName() + "'");
 
         if (message instanceof @NotNull ClientIntentionPacket packet) {
             // EnumProtocol represents the 'Next State' property from the handshaking protocol
@@ -272,7 +271,6 @@ public final class PaperInjection extends NettyInjection {
     @Override
     protected @UnknownNullability Object write(@NotNull ChannelHandlerContext context, @NotNull Object message, @NotNull ChannelPromise promise) throws IOException {
         @NotNull Channel channel = context.channel();
-        System.out.println("Write: '" + message.getClass().getSimpleName() + "'");
 
         if (message instanceof @NotNull ClientboundHelloPacket begin) {
             @NotNull ConnectionImpl connection = ConnectionImpl.retrieve(channel).orElseThrow(() -> new NullPointerException("cannot retrieve client's connection"));

@@ -103,7 +103,6 @@ final class LaivyAuthApiImpl implements LaivyAuthApi {
 
         // Get compatible module and load it
         for (@NotNull Mapping mapping : mappings) {
-            System.out.println("Mapping: " + mapping.getName() + ", compatible: " + mapping.isCompatible());
             if (mapping.isCompatible()) try {
                 this.mapping = mapping;
                 mapping.start();
