@@ -267,7 +267,7 @@ final class ConfigurationImpl implements Configuration {
             // Getters
 
             @Override
-            public boolean hasBlidnessEffect() {
+            public boolean hasBlindnessEffect() {
                 return blidnessEffect;
             }
             @Override

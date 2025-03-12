@@ -66,7 +66,7 @@ public interface Configuration {
         }
         interface Visibility {
 
-            boolean hasBlidnessEffect();
+            boolean hasBlindnessEffect();
             boolean hasInvisibilityEffect();
 
             boolean hasIdentity();
