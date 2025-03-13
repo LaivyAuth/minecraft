@@ -23,11 +23,9 @@ public final class Main implements Mapping {
     // Static initializers
 
     private static @UnknownNullability Main instance;
-
     private static @NotNull String name() {
         return "1.20.0/1";
     }
-
     public static final @NotNull Logger log = LoggerFactory.getLogger(name());
 
     // Object

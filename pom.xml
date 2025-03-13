@@ -44,4 +44,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>codes.laivy</groupId>
+            <artifactId>java-address</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+    </dependencies>
+
 </project>
